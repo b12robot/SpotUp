@@ -1,0 +1,7 @@
+*
+!.github\workflows\release.yml
+!.gitattributes
+!.gitignore
+!LICENSE
+!README.md
+!SpotUp.bat
