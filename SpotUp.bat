@@ -53,8 +53,8 @@ set spotx_podcast=1
 :: 3 -> Spotify güncellemelerini engellemeyi kurulum sırasında sor.
 set spotx_update=1
 
-set "debug=false"
 set "backup=true"
+set "debug=false"
 set "time=1"
 set "retry=1"
 
