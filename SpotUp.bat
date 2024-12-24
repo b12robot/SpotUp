@@ -3,55 +3,54 @@ title SpotUp
 setlocal enabledelayedexpansion
 chcp 65001 >nul 2>&1
 
-:: ╔════════════════╗
-:: ║    Websites    ║
-:: ╚════════════════╝
-::   Spotify: https://www.spotify.com/download | Spotify Versions: https://cutt.ly/8EH6NuH
+:: ╔══════════════╗
+:: ║   Websites   ║
+:: ╚══════════════╝
+::   Spotify: https://www.spotify.com/download | https://cutt.ly/8EH6NuH
 :: Spicetify: https://github.com/spicetify/spicetify-cli | https://spicetify.app
-::     SpotX: https://github.com/SpotX-Official/SpotX
+::     SpotX: https://github.com/SpotX-Official/SpotX | https://github.com/SpotX-Official/SpotX/discussions/60
 ::    SpotUp: https://github.com/b12robot/SpotUp
 
 :: ╔═══════════════╗
 :: ║ SpotUp Config ║
 :: ╚═══════════════╝
-:: Spotify'ı kaldır.
+:: Spotify'ı kaldır ve yükle.
+:: Seçenekler: "true", "false"
 set spotify_uninstall=true
-
-:: Spotify'ı yükle.
 set spotify_install=true
 
-:: SpotX'ı kaldır.
+:: SpotX'ı kaldır ve yükle.
+:: Seçenekler: "true", "false"
 set spotx_uninstall=true
-
-:: SpotX'ı yükle.
 set spotx_install=true
 
-:: Spicetify'ı kaldır.
+:: Spicetify'ı kaldır, yükle ve güncelle.
+:: Seçenekler: "true", "false"
 set spicetify_uninstall=true
-
-:: Spicetify'ı yükle
 set spicetify_install=true
-
-:: Spicetify'ı güncelle.
 set spicetify_update=false
 
 :: ╔════════════════╗
 :: ║  SpotX Config  ║
 :: ╚════════════════╝
-:: 1 -> Spotify'ı önerilen versiyona üzerine yazarak güncelle.
-:: 2 -> Spotify'ı önerilen versiyona tekrar kurarak güncelle.
-:: 3 -> Spotify'ı önerilen versiyona güncellemeyi kurulum sırasında sor.
-set spotx_recomend=1
+:: SpotX'ın Spotify'ı güncelleme modu:
+:: (Kurulum sırasında bir kez etkili olur.)
+:: "overwrite" -> Üzerine yazarak güncelle.
+:: "reinstall" -> Yeniden yükleyerek güncelle.
+:: "prompt"    -> Kullanıcıya kurulum sırasında sor.
+set spotx_update_mode=overwrite
 
-:: 1 -> Ana sayfadan podcastleri, bölümleri ve sesli kitapları kaldır.
-:: 2 -> Ana sayfadan podcastleri, bölümleri ve sesli kitapları kaldırma.
-:: 3 -> Ana sayfadan podcastleri, bölümleri ve sesli kitapları kaldırmayı kurulum sırasında sor.
-set spotx_podcast=1
+:: Spotify ana sayfa içerik modu:
+:: "remove" -> Podcastleri, bölümleri ve sesli kitapları kaldır.
+:: "keep"   -> Podcastleri, bölümleri ve sesli kitapları tut.
+:: "prompt" -> Kullanıcıya kurulum sırasında sor.
+set spotx_homepage_content=remove
 
-:: 1 -> Spotify güncellemelerini engelle.
-:: 2 -> Spotify güncellemelerini engelleme.
-:: 3 -> Spotify güncellemelerini engellemeyi kurulum sırasında sor.
-set spotx_update=1
+:: Spotify otomatik güncelleme modu:
+:: "block"  -> Güncellemeleri engelle.
+:: "allow"  -> Güncellemelere izin ver.
+:: "prompt" -> Kullanıcıya kurulum sırasında sor.
+set spotx_auto_updates=block
 
 set "backup=true"
 set "debug=false"
@@ -242,31 +241,31 @@ if "%spotify_install%" EQU "true" (
 
 if "%spotx_install%" EQU "true" (
 	cls & echo ╔═══════════════╗ & echo ║ SpotX Install ║ & echo ╚═══════════════╝
-	if "%debug%" EQU "true" (echo [45;97m Debug [0m spotx_recomend:%spotx_recomend%)
-	if "%spotx_recomend%" EQU "1" (
-		set "spotx_recomend= -confirm_spoti_recomended_over"
-	) else if "%spotx_recomend%" EQU "2" (
-		set "spotx_recomend= -confirm_spoti_recomended_uninstall"
+	if "%debug%" EQU "true" (echo [45;97m Debug [0m spotx_update_mode:%spotx_update_mode%)
+	if "%spotx_update_mode%" EQU "overwrite" (
+		set "spotx_update_mode= -confirm_spoti_recomended_over"
+	) else if "%spotx_update_mode%" EQU "reinstall" (
+		set "spotx_update_mode= -confirm_spoti_recomended_uninstall"
 	) else (
-		set "spotx_recomend="
+		set "spotx_update_mode="
 	)
-	if "%debug%" EQU "true" (echo [45;97m Debug [0m spotx_podcast:%spotx_podcast%)
-	if "%spotx_podcast%" EQU "1" (
-		set "spotx_podcast= -podcasts_off"
-	) else if "%spotx_podcast%" EQU "2" (
-		set "spotx_podcast= -podcasts_on"
+	if "%debug%" EQU "true" (echo [45;97m Debug [0m spotx_homepage_content:%spotx_homepage_content%)
+	if "%spotx_homepage_content%" EQU "remove" (
+		set "spotx_homepage_content= -podcasts_off"
+	) else if "%spotx_homepage_content%" EQU "keep" (
+		set "spotx_homepage_content= -podcasts_on"
 	) else (
-		set "spotx_podcast="
+		set "spotx_homepage_content="
 	)
-	if "%debug%" EQU "true" (echo [45;97m Debug [0m spotx_update:%spotx_update%)
-	if "%spotx_update%" EQU "1" (
-		set "spotx_update= -block_update_on"
-	) else if "%spotx_update%" EQU "2" (
-		set "spotx_update= -block_update_off"
+	if "%debug%" EQU "true" (echo [45;97m Debug [0m spotx_auto_updates:%spotx_auto_updates%)
+	if "%spotx_auto_updates%" EQU "block" (
+		set "spotx_auto_updates= -block_update_on"
+	) else if "%spotx_auto_updates%" EQU "allow" (
+		set "spotx_auto_updates= -block_update_off"
 	) else (
-		set "spotx_update="
+		set "spotx_auto_updates="
 	)
-	set "param=!spotx_recomend!!spotx_podcast!!spotx_update! -confirm_uninstall_ms_spoti -start_spoti"
+	set "param=!spotx_update_mode!!spotx_homepage_content!!spotx_auto_updates! -confirm_uninstall_ms_spoti -start_spoti"
 	if "%debug%" EQU "true" (echo [45;97m Debug [0m param:!param! & pause)
 	if not exist "%appdata%\Spotify\Spotify.exe" (
 		echo [31mSpotify yüklü değil, SpotX yüklenemez.[0m
