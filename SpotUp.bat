@@ -58,37 +58,46 @@ set spotx_update_mode=prompt
 :: remove -> Ana sayfadan podcastleri, bölümleri ve sesli kitapları kaldırır.
 ::   keep -> Ana sayfada podcastleri, bölümleri ve sesli kitapları tutar.
 :: prompt -> Kurulum sırasında kullanıcıya sorar.
-set spotx_homepage_content=remove
+set spotx_homepage_content=prompt
 
 :: Spotify otomatik güncelleme seçenekleri:
 :: (Otomatik güncellemeler, SpotX'in yeniden yüklenmesini ve Spicetify'ı tekrar aktifleştirmek için "spicetify apply" komutunun çalıştırılmasını gerektirebilir.)
 ::  block -> Otomatik güncellemeleri engeller.
 ::  allow -> Otomatik güncellemelere izin verir.
 :: prompt -> Kurulum sırasında kullanıcıya sorar.
-set spotx_auto_updates=block
+set spotx_auto_updates=prompt
 
 set "backup=true"
 set "pause=false"
 set "debug=false"
 set "delay=1"
 
-if %preset% EQU "install" (
+if "%debug%" EQU "true" (echo [45;97m Debug [0m preset:%preset%)
+if "%preset%" EQU "install" (
 	set "spotify_uninstall=false" & set "spotify_install=true" & set "spotify_update=false"
 	set "spotx_uninstall=false" & set "spotx_install=true" & set "spotx_update=false"
 	set "spicetify_uninstall=false" & set "spicetify_install=true" & set "spicetify_update=false"
-) else if %preset% EQU "uninstall" (
+) else if "%preset%" EQU "uninstall" (
 	set "spotify_uninstall=true" & set "spotify_install=false" & set "spotify_update=false"
 	set "spotx_uninstall=true" & set "spotx_install=false" & set "spotx_update=false"
 	set "spicetify_uninstall=true" & set "spicetify_install=false" & set "spicetify_update=false"
-) else if %preset% EQU "reinstall" (
+) else if "%preset%" EQU "reinstall" (
 	set "spotify_uninstall=true" & set "spotify_install=true" & set "spotify_update=false"
 	set "spotx_uninstall=true" & set "spotx_install=true" & set "spotx_update=false"
 	set "spicetify_uninstall=true" & set "spicetify_install=true" & set "spicetify_update=false"
-) else if %preset% EQU "update" (
+) else if "%preset%" EQU "update" (
 	set "spotify_uninstall=false" & set "spotify_install=false" & set "spotify_update=true"
 	set "spotx_uninstall=false" & set "spotx_install=false" & set "spotx_update=true"
 	set "spicetify_uninstall=false" & set "spicetify_install=false" & set "spicetify_update=true"
 )
+
+if "%debug%" EQU "true" (echo [45;97m Debug [0m spotify_uninstall:%spotify_uninstall%)
+if "%debug%" EQU "true" (echo [45;97m Debug [0m spotify_install:%spotify_install%)
+if "%debug%" EQU "true" (echo [45;97m Debug [0m spotx_uninstall:%spotx_uninstall%)
+if "%debug%" EQU "true" (echo [45;97m Debug [0m spotx_install:%spotx_install%)
+if "%debug%" EQU "true" (echo [45;97m Debug [0m spicetify_uninstall:%spicetify_uninstall%)
+if "%debug%" EQU "true" (echo [45;97m Debug [0m spicetify_install:%spicetify_install%)
+if "%debug%" EQU "true" (echo [45;97m Debug [0m spicetify_update:%spicetify_update%)
 
 set "change=0"
 if "%spotify_uninstall%" NEQ "true" (set /a "change+=1")
