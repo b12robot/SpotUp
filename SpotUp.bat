@@ -19,7 +19,7 @@ chcp 65001 >nul 2>&1
 :: reinstall -> Spotify, SpotX ve Spicetify'i kaldırıp yeniden kurar.
 :: update    -> Spicetify'i günceller.
 :: custom    -> Aşağıdaki seçeneklere göre işlem yapar.
-set preset=custom
+set preset=reinstall
 
 :: Spotify: Dijital müzik ve podcast akış platformu.
 :: İşlemler (true/false):
@@ -58,14 +58,14 @@ set spotx_update_mode=prompt
 :: remove -> Ana sayfadan podcastleri, bölümleri ve sesli kitapları kaldırır.
 ::   keep -> Ana sayfada podcastleri, bölümleri ve sesli kitapları tutar.
 :: prompt -> Kurulum sırasında kullanıcıya sorar.
-set spotx_homepage_content=prompt
+set spotx_homepage_content=remove
 
 :: Spotify otomatik güncelleme seçenekleri:
 :: (Otomatik güncellemeler, SpotX'in yeniden yüklenmesini ve Spicetify'ı tekrar aktifleştirmek için "spicetify apply" komutunun çalıştırılmasını gerektirebilir.)
 ::  block -> Otomatik güncellemeleri engeller.
 ::  allow -> Otomatik güncellemelere izin verir.
 :: prompt -> Kurulum sırasında kullanıcıya sorar.
-set spotx_auto_updates=prompt
+set spotx_auto_updates=block
 
 set "backup=true"
 set "pause=false"
@@ -128,7 +128,7 @@ if "%spicetify_install%" EQU "true" (
 if "%spotify_uninstall%" EQU "true" (
 	cls & echo ╔═══════════════════╗ & echo ║ Spotify Uninstall ║ & echo ╚═══════════════════╝
 	if not exist "%appdata%\Spotify\Spotify.exe" (
-		echo [31mSpotify yüklü değil, kaldırılamaz.[0m
+		echo [33mSpotify yüklü değil, kaldırılamaz.[0m
 		timeout /t %delay% /nobreak >nul 2>&1
 	) else (
 		call :spo_stp
@@ -144,7 +144,7 @@ if "%spotify_uninstall%" EQU "true" (
 					if "%pause%" EQU "true" (echo Devam etmek için herhangi bir tuşa basın... & pause >nul 2>&1) else (timeout /t %delay% /nobreak >nul 2>&1)
 				)
 			) else (
-				echo [31mYedeklenecek Spotify dosyası bulunamadı.[0m
+				echo [33mYedeklenecek Spotify dosyası bulunamadı.[0m
 				if "%pause%" EQU "true" (echo Devam etmek için herhangi bir tuşa basın... & pause >nul 2>&1) else (timeout /t %delay% /nobreak >nul 2>&1)
 			)
 		)
@@ -184,11 +184,11 @@ if "%spotx_uninstall%" EQU "true" (
 	cls & echo ╔═════════════════╗ & echo ║ SpotX Uninstall ║ & echo ╚═════════════════╝
 	if not exist "%appdata%\Spotify" (
 		set "spotx_uninstall_status=true"
-		echo [32mSpotX zaten kaldırılmış.[0m
+		echo [33mSpotX zaten kaldırılmış.[0m
 		timeout /t %delay% /nobreak >nul 2>&1
 	) else (
 		if not exist "%appdata%\Spotify\Spotify.bak" (
-			echo [31mSpotX yüklü değil, kaldırılamaz.[0m
+			echo [33mSpotX yüklü değil, kaldırılamaz.[0m
 			timeout /t %delay% /nobreak >nul 2>&1
 		) else (
 			call :spo_stp
@@ -231,7 +231,7 @@ if "%spotx_uninstall%" EQU "true" (
 if "%spicetify_uninstall%" EQU "true" (
 	cls & echo ╔═════════════════════╗ & echo ║ Spicetify Uninstall ║ & echo ╚═════════════════════╝
 	if not exist "%localappdata%\spicetify\spicetify.exe" (
-		echo [31mSpicetify yüklü değil, kaldırılamaz.[0m
+		echo [33mSpicetify yüklü değil, kaldırılamaz.[0m
 		timeout /t %delay% /nobreak >nul 2>&1
 	) else (
 		call :spo_stp
@@ -257,7 +257,7 @@ if "%spicetify_uninstall%" EQU "true" (
 if "%spotify_install%" EQU "true" (
 	cls & echo ╔═════════════════╗ & echo ║ Spotify Install ║ & echo ╚═════════════════╝
 	if exist "%appdata%\Spotify\Spotify.exe" (
-		echo [32mSpotify zaten yüklü.[0m
+		echo [33mSpotify zaten yüklü.[0m
 		timeout /t %delay% /nobreak >nul 2>&1
 	) else (
 		call :spo_stp
@@ -292,7 +292,7 @@ if "%spotify_install%" EQU "true" (
 							if "%pause%" EQU "true" (echo Devam etmek için herhangi bir tuşa basın... & pause >nul 2>&1) else (timeout /t %delay% /nobreak >nul 2>&1)
 						)
 					) else (
-						echo [31mSpotify yedeği bulunamadı.[0m
+						echo [33mSpotify yedeği bulunamadı.[0m
 						if "%pause%" EQU "true" (echo Devam etmek için herhangi bir tuşa basın... & pause >nul 2>&1) else (timeout /t %delay% /nobreak >nul 2>&1)
 					)
 				)
@@ -345,7 +345,7 @@ if "%spotx_install%" EQU "true" (
 		timeout /t %delay% /nobreak >nul 2>&1
 	) else (
 		if exist "%appdata%\Spotify\Spotify.bak" (
-			echo [32mSpotX zaten yüklü.[0m
+			echo [33mSpotX zaten yüklü.[0m
 			timeout /t %delay% /nobreak >nul 2>&1
 		) else (
 			call :spo_stp
@@ -371,7 +371,7 @@ if "%spicetify_install%" EQU "true" (
 		timeout /t %delay% /nobreak >nul 2>&1
 	) else (
 		if exist "%localappdata%\spicetify\spicetify.exe" (
-			echo [32mSpicetify zaten yüklü.[0m
+			echo [33mSpicetify zaten yüklü.[0m
 			timeout /t %delay% /nobreak >nul 2>&1
 		) else (
 			call :spo_stp
@@ -404,7 +404,7 @@ if "%spicetify_update%" EQU "true" (
 			echo Spicetify güncelleniyor...
 			for /f %%a in ('spicetify --version') do set "old_spi_ver=%%a"
 			if "%debug%" EQU "true" (echo [45;97m Debug [0m old_spi_ver:!old_spi_ver!)
-			powershell -ExecutionPolicy RemoteSigned -Command "spicetify upgrade"
+			powershell -ExecutionPolicy RemoteSigned -Command "spicetify update"
 			timeout /t 2 /nobreak >nul 2>&1
 			for /f %%a in ('spicetify --version') do set "new_spi_ver=%%a"
 			if "%debug%" EQU "true" (echo [45;97m Debug [0m new_spi_ver:!new_spi_ver!)
@@ -415,7 +415,7 @@ if "%spicetify_update%" EQU "true" (
 			) else (
 				set "spicetify_update_status=true"
 				echo [32mSpicetify başarıyla güncellendi.[0m
-				timeout /t 2 /nobreak >nul 2>&1
+				timeout /t %delay% /nobreak >nul 2>&1
 			)
 		)
 	)
@@ -451,14 +451,14 @@ echo Çıkmak için herhangi bir tuşa basın... & endlocal & pause >nul 2>&1 & 
 set "retry=1"
 set "max_retry=3"
 if not exist "%appdata%\Spotify\Spotify.exe" (
-	echo [31mSpotify bulunamadı, durdurulamaz.[0m
+	echo [33mSpotify bulunamadı, durdurulamaz.[0m
 	timeout /t %delay% /nobreak >nul 2>&1
 ) else (
 	:retry
 	tasklist | findstr "Spotify.exe" >nul 2>&1
 	if "%debug%" EQU "true" (echo [45;97m Debug [0m tasklist_1:!errorlevel!)
 	if "!errorlevel!" EQU "1" (
-		echo [32mSpotify zaten durdurulmuş.[0m
+		echo [33mSpotify zaten durdurulmuş.[0m
 		timeout /t %delay% /nobreak >nul 2>&1
 	) else (
 		echo Spotify durduruluyor...
@@ -487,9 +487,9 @@ exit /b
 :set_symbol
 set "varname=%~1"
 set "value=%~2"
-if /i "%value%" EQU "true" (
+if "%value%" EQU "true" (
     set "%varname%=✔️"
-) else if /i "%value%" EQU "false" (
+) else if "%value%" EQU "false" (
     set "%varname%=❌"
 ) else (
     set "%varname%=➖"
