@@ -25,15 +25,15 @@ set preset=custom
 :: Seçenekler: true/false
 :: spotify_uninstall -> Spotify'ı kaldır.
 ::   spotify_install -> Spotify'ı kur.
-set spotify_uninstall=true
-set spotify_install=true
+set spotify_uninstall=false
+set spotify_install=false
 
 :: SpotX: Spotify için reklam engelleme ve güncelleme kontrol aracı.
 :: Seçenekler: true/false
 :: spotx_uninstall -> SpotX'i kaldır.
 ::   spotx_install -> SpotX'i kur.
-set spotx_uninstall=true
-set spotx_install=true
+set spotx_uninstall=false
+set spotx_install=false
 
 :: Spicetify: Spotify’ın arayüzünü ve işlevlerini özelleştirme aracı.
 :: Seçenekler: true/false
@@ -141,8 +141,7 @@ if "%spotify_uninstall%" EQU "true" (
 			if exist "%appdata%\Spotify\prefs." (
 				echo Spotify yedekleniyor...
 				xcopy "%appdata%\Spotify\prefs." "%temp%\SpotifyBackup\" /i /y >nul 2>&1
-				xcopy "%appdata%\Spotify\Users\prefs." "%temp%\SpotifyBackup\Users\" /s /e /i /y >nul 2>&1
-				xcopy "%localappdata%\Spotify\Local State." "%temp%\SpotifyBackup\" /i /y >nul 2>&1
+				xcopy "%appdata%\Spotify\Users\" "%temp%\SpotifyBackup\Users\" /s /e /i /y >nul 2>&1
 				if exist "%temp%\SpotifyBackup\prefs." (
 					echo [32mSpotify başarıyla yedeklendi.[0m
 					timeout /t %delay% /nobreak >nul 2>&1
@@ -415,8 +414,7 @@ if "%spotify_uninstall%" EQU "true" (
 			echo Spotify yedeği geri yükleniyor...
 			move /y "%appdata%\Spotify\prefs." "%appdata%\Spotify\prefs.backup" >nul 2>&1
 			xcopy "%temp%\SpotifyBackup\prefs." "%appdata%\Spotify\" /i /y >nul 2>&1
-			xcopy "%temp%\SpotifyBackup\Users\*" "%appdata%\Spotify\Users\" /s /e /i /y >nul 2>&1
-			xcopy "%temp%\SpotifyBackup\Local State." "%localappdata%\Spotify\" /i /y >nul 2>&1
+			xcopy "%temp%\SpotifyBackup\Users\" "%appdata%\Spotify\Users\" /s /e /i /y >nul 2>&1
 			if exist "%appdata%\Spotify\prefs." (
 				echo [32mSpotify yedeği başarıyla geri yüklendi.[0m
 				rd /s /q "%temp%\SpotifyBackup" >nul 2>&1
