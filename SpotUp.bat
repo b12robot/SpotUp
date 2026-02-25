@@ -25,15 +25,15 @@ set preset=custom
 :: Seçenekler: true/false
 :: spotify_uninstall -> Spotify'ı kaldır.
 ::   spotify_install -> Spotify'ı kur.
-set spotify_uninstall=false
-set spotify_install=false
+set spotify_uninstall=true
+set spotify_install=true
 
 :: SpotX: Spotify için reklam engelleme ve güncelleme kontrol aracı.
 :: Seçenekler: true/false
 :: spotx_uninstall -> SpotX'i kaldır.
 ::   spotx_install -> SpotX'i kur.
-set spotx_uninstall=false
-set spotx_install=false
+set spotx_uninstall=true
+set spotx_install=true
 
 :: Spicetify: Spotify’ın arayüzünü ve işlevlerini özelleştirme aracı.
 :: Seçenekler: true/false
@@ -213,6 +213,7 @@ del /q "%temp%\SpotifyUninstall.exe" >nul 2>&1
 del /q "%userprofile%\Desktop\Spotify.lnk" >nul 2>&1
 if not exist "%appdata%\Spotify\Spotify.exe" (
 	set "spotify_uninstall_status=true"
+	set "spotx_uninstall_status=true"
 	echo [32mSpotify başarıyla kaldırıldı.[0m
 	timeout /t %delay% /nobreak >nul 2>&1
 ) else (
