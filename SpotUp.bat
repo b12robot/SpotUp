@@ -6,7 +6,7 @@ chcp 65001 >nul 2>&1
 :: ╔════════════╗
 :: ║  Websites  ║
 :: ╚════════════╝
-::   Spotify: https://www.spotify.com/download | https://cutt.ly/8EH6NuH
+::   Spotify: https://www.spotify.com/download | https://loadspot.pages.dev
 :: Spicetify: https://github.com/spicetify/spicetify-cli | https://spicetify.app
 ::     SpotX: https://github.com/SpotX-Official/SpotX | https://github.com/SpotX-Official/SpotX/discussions/60
 ::    SpotUp: https://github.com/b12robot/SpotUp
@@ -14,34 +14,33 @@ chcp 65001 >nul 2>&1
 :: ╔═══════════════╗
 :: ║ SpotUp Config ║
 :: ╚═══════════════╝
-::   install -> Spotify, SpotX ve Spicetify kurulumu yapar.
+:: Hazır bir önayar seçin veya custom seçerek aşağıdan özelleştirin.
+::   install -> Spotify, SpotX ve Spicetify’ı kurar.
 :: uninstall -> Spotify, SpotX ve Spicetify'i kaldırır.
 :: reinstall -> Spotify, SpotX ve Spicetify'i kaldırıp yeniden kurar.
 ::    update -> Spicetify'i günceller.
-::    custom -> Aşağıdaki seçeneklere göre işlem yapar.
+::    custom -> Aşağıda belirlediğiniz seçeneklere göre işlem yapar.
 set preset=custom
 
 :: Spotify: Dijital müzik ve podcast akış platformu.
-:: Seçenekler: true/false
-:: spotify_uninstall -> Spotify'ı kaldır.
-::   spotify_install -> Spotify'ı kur.
+:: Spotify'ı kaldırır. (true/false)
+:: (Spotify'ı kaldırmak SpotX'i de kaldıracaktır.)
 set spotify_uninstall=true
+:: Spotify'ı kurar. (true/false)
 set spotify_install=true
 
 :: SpotX: Spotify için reklam engelleme ve güncelleme kontrol aracı.
-:: Seçenekler: true/false
-:: spotx_uninstall -> SpotX'i kaldır.
-::   spotx_install -> SpotX'i kur.
+:: SpotX'i kaldırır. (true/false)
 set spotx_uninstall=true
+:: SpotX'i kurar. (true/false)
 set spotx_install=true
 
-:: Spicetify: Spotify’ın arayüzünü ve işlevlerini özelleştirme aracı.
-:: Seçenekler: true/false
-:: spicetify_uninstall -> Spicetify'ı kaldır.
-::   spicetify_install -> Spicetify'ı kur.
-::    spicetify_update -> Spicetify'ı güncelle.
+:: Spicetify: Spotify arayüzünü ve işlevlerini özelleştirme aracı.
+:: Spicetify'ı kaldırır. (true/false)
 set spicetify_uninstall=false
+:: Spicetify'ı kurar. (true/false)
 set spicetify_install=false
+:: Spicetify'ı günceller. (true/false)
 set spicetify_update=false
 
 :: ╔══════════════╗
@@ -67,12 +66,25 @@ set spotx_homepage_content=remove
 :: prompt -> Kurulum sırasında kullanıcıya sorar.
 set spotx_auto_updates=block
 
-set "backup=true"
-set "pause=false"
-set "debug=false"
-set "delay=1"
+:: ╔══════════════════╗
+:: ║ Advanced Options ║
+:: ╚══════════════════╝
+:: İşlemler öncesi Spotify ayarlarını ve kullanıcı verilerini yedekler, işlemler tamamlandığında geri yükler. (true/false)
+set backup=true
 
-if "%debug%" EQU "true" (echo [45;97m Debug [0m preset:%preset%)
+:: Hata durumunda bir sonraki işleme geçmeden önce kullanıcı onayı bekler. (true/false)
+set pause=false
+
+:: İşlemler arasındaki bekleme süresi. (1-99 Saniye)
+set delay=1
+
+:: İşlemler sırasında ekstra hata ayıklama bilgilerini gösterir. (true/false)
+set debug=false
+
+:: ╔═════════════════╗
+:: ║  End of Config  ║
+:: ╚═════════════════╝
+
 if "%preset%" EQU "install" (
 	set "spotify_uninstall=false" & set "spotify_install=true"
 	set "spotx_uninstall=false" & set "spotx_install=true"
@@ -87,35 +99,12 @@ if "%preset%" EQU "install" (
 	set "spotify_uninstall=true" & set "spotify_install=true"
 	set "spotx_uninstall=true" & set "spotx_install=true"
 	set "spicetify_uninstall=true" & set "spicetify_install=true" & set "spicetify_update=false"
+	set "backup=true"
 ) else if "%preset%" EQU "update" (
 	set "spotify_uninstall=false" & set "spotify_install=false"
 	set "spotx_uninstall=false" & set "spotx_install=false"
 	set "spicetify_uninstall=false" & set "spicetify_install=false" & set "spicetify_update=true"
-)
-
-if "%debug%" EQU "true" (echo [45;97m Debug [0m spotify_backup:%backup%)
-if "%debug%" EQU "true" (echo [45;97m Debug [0m spotify_uninstall:%spotify_uninstall%)
-if "%debug%" EQU "true" (echo [45;97m Debug [0m spotify_install:%spotify_install%)
-if "%debug%" EQU "true" (echo [45;97m Debug [0m spotx_uninstall:%spotx_uninstall%)
-if "%debug%" EQU "true" (echo [45;97m Debug [0m spotx_install:%spotx_install%)
-if "%debug%" EQU "true" (echo [45;97m Debug [0m spicetify_uninstall:%spicetify_uninstall%)
-if "%debug%" EQU "true" (echo [45;97m Debug [0m spicetify_install:%spicetify_install%)
-if "%debug%" EQU "true" (echo [45;97m Debug [0m spicetify_update:%spicetify_update%)
-
-set "change=false"
-if "%spotify_uninstall%" EQU "true" (set "change=true")
-if "%spotify_install%" EQU "true" (set "change=true")
-if "%spotify_update%" EQU "true" (set "change=true")
-if "%spotx_uninstall%" EQU "true" (set "change=true")
-if "%spotx_install%" EQU "true" (set "change=true")
-if "%spotx_update%" EQU "true" (set "change=true")
-if "%spicetify_uninstall%" EQU "true" (set "change=true")
-if "%spicetify_install%" EQU "true" (set "change=true")
-if "%spicetify_update%" EQU "true" (set "change=true")
-if "%debug%" EQU "true" (echo [45;97m Debug [0m change:%change%)
-if "%change%" EQU "false" (
-	echo Herhangi bir işlem seçilmedi lütfen dosyaya sağ tıklayıp not defteri ile yapılandırmayı düzenleyin.
-	echo Çıkmak için herhangi bir tuşa basın... & endlocal & pause >nul 2>&1 & exit /b
+	set "backup=false"
 )
 
 if "%spicetify_install%" EQU "true" (
@@ -126,6 +115,47 @@ if "%spicetify_install%" EQU "true" (
 			set "spicetify_install=true" & set "spicetify_update=false"
 		)
 	)
+)
+
+set "change=false"
+if "%spotify_uninstall%" EQU "true" (set "change=true")
+if "%spotify_install%" EQU "true" (set "change=true")
+if "%spotx_uninstall%" EQU "true" (set "change=true")
+if "%spotx_install%" EQU "true" (set "change=true")
+if "%spicetify_uninstall%" EQU "true" (set "change=true")
+if "%spicetify_install%" EQU "true" (set "change=true")
+if "%spicetify_update%" EQU "true" (set "change=true")
+if "%change%" EQU "false" (
+	echo Herhangi bir işlem seçilmedi lütfen dosyaya sağ tıklayıp not defteri ile yapılandırmayı düzenleyin.
+	echo Çıkmak için herhangi bir tuşa basın... & endlocal & pause >nul 2>&1 & exit
+)
+
+set "config_error=false"
+for %%v in (spotify_uninstall spotify_install spotx_uninstall spotx_install spicetify_uninstall spicetify_install spicetify_update backup pause debug) do (
+    if "!%%v!" NEQ "true" if "!%%v!" NEQ "false" (
+        echo [41;97m Error [0m '%%v' değişkeni için geçersiz değer: '!%%v!', true/false olmalı.
+        set "config_error=true"
+    )
+)
+if "%spotx_update_mode%" NEQ "overwrite" if "%spotx_update_mode%" NEQ "reinstall" if "%spotx_update_mode%" NEQ "prompt" (
+    echo [41;97m Error [0m 'spotx_update_mode' değişkeni için geçersiz değer: '%spotx_update_mode%'
+    set "config_error=true"
+)
+if "%spotx_homepage_content%" NEQ "remove" if "%spotx_homepage_content%" NEQ "keep" if "%spotx_homepage_content%" NEQ "prompt" (
+    echo [41;97m Error [0m 'spotx_homepage_content' değişkeni için geçersiz değer: '%spotx_homepage_content%'
+    set "config_error=true"
+)
+if "%spotx_auto_updates%" NEQ "block" if "%spotx_auto_updates%" NEQ "allow" if "%spotx_auto_updates%" NEQ "prompt" (
+    echo [41;97m Error [0m 'spotx_auto_updates' değişkeni için geçersiz değer: '%spotx_auto_updates%'
+    set "config_error=true"
+)
+echo %delay%| findstr /r "^[0-9][0-9]*$" >nul 2>&1 || (
+	echo [41;97m Error [0m 'delay' değişkeni için geçersiz değer: '%delay%', 1-99 aralığında olmalı.
+	set "config_error=true"
+)
+if "%config_error%" EQU "true" (
+    echo Lütfen yapılandırmayı düzeltip tekrar çalıştırın.
+    echo Çıkmak için herhangi bir tuşa basın... & endlocal & pause >nul 2>&1 & exit
 )
 
 if exist "%userprofile%\Desktop\Spotify.lnk" (
@@ -158,20 +188,23 @@ for %%v in (
     spicetify_uninstall_status
     spicetify_install_status
     spicetify_update_status
+	backup_status
+	restore_status
 ) do (
     call :set_symbol %%v !%%v!
 )
 
-if not "%debug%" EQU "true" (cls)
+cls
 echo ╔═══════════╦══════════╦══════════╦══════════╗
-echo ║ Prog/Drum ║  Kaldır  ║  Yükle   ║ Güncelle ║
-echo ╠═══════════╬══════════╬══════════╬══════════╣
-echo ║ Spotify   ║    !spotify_uninstall_status!    ║    !spotify_install_status!    ║    !spotify_update_status!    ║
-echo ╠═══════════╬══════════╬══════════╬══════════╣
-echo ║ SpotX     ║    !spotx_uninstall_status!    ║    !spotx_install_status!    ║    !spotx_update_status!    ║
-echo ╠═══════════╬══════════╬══════════╬══════════╣
-echo ║ Spicetify ║    !spicetify_uninstall_status!    ║    !spicetify_install_status!    ║    !spicetify_update_status!    ║
+echo ║ [94mProg/Drum[0m ║  [94mKaldır[0m  ║  [94mYükle[0m   ║ [94mGüncelle[0m ║
+echo ╠═══════════╬══════════╬══════════╬══════════╣   ╔════════════════════════════════════════╗
+echo ║ [92mSpotify[0m   ║    !spotify_uninstall_status!    ║    !spotify_install_status!    ║    !spotify_update_status!    ║   ║ ✔️ [90m-^>[0m İşlem yapıldı ve başarılı oldu.  ║
+echo ╠═══════════╬══════════╬══════════╬══════════╣   ║ ❌ [90m-^>[0m İşlem denendi ve başarısız oldu. ║
+echo ║ [93mSpotX[0m     ║    !spotx_uninstall_status!    ║    !spotx_install_status!    ║    !spotx_update_status!    ║   ║ ➖ [90m-^>[0m İşlem yapılmadı/gerek yoktu.     ║
+echo ╠═══════════╬══════════╬══════════╬══════════╣   ╚════════════════════════════════════════╝
+echo ║ [91mSpicetify[0m ║    !spicetify_uninstall_status!    ║    !spicetify_install_status!    ║    !spicetify_update_status!    ║
 echo ╚═══════════╩══════════╩══════════╩══════════╝
+echo [96mYedekleme:[0m !backup_status!  [96mGeri Yükleme:[0m !restore_status!
 echo Çıkmak için herhangi bir tuşa basın... & endlocal & pause >nul 2>&1 & exit
 
 :spotify_backup
@@ -187,9 +220,11 @@ rd /s /q "%temp%\SpotifyBackup" >nul 2>&1
 xcopy "%appdata%\Spotify\prefs." "%temp%\SpotifyBackup\" /i /y >nul 2>&1
 xcopy "%appdata%\Spotify\Users\" "%temp%\SpotifyBackup\Users\" /s /e /i /y >nul 2>&1
 if exist "%temp%\SpotifyBackup\prefs." (
+	set "backup_status=true"
 	echo [32mSpotify başarıyla yedeklendi.[0m
 	timeout /t %delay% /nobreak >nul 2>&1
 ) else (
+	set "backup_status=false"
 	echo [31mSpotify yedeklenemedi.[0m
 	if "%pause%" EQU "true" (echo Devam etmek için herhangi bir tuşa basın... & pause >nul 2>&1) else (timeout /t %delay% /nobreak >nul 2>&1)
 )
@@ -204,6 +239,7 @@ if not exist "%appdata%\Spotify\Spotify.exe" (
 )
 call :spo_stp
 echo Spotify kaldırılıyor...
+if exist "%appdata%\Spotify\Spotify.bak" (set "spotx_installed=true")
 icacls "%localappdata%\Spotify\Update" /reset /t >nul 2>&1
 start /b /w "SpotifyUninstall" "%appdata%\Spotify\Spotify.exe" /uninstall /silent
 timeout /t 2 /nobreak >nul 2>&1
@@ -212,8 +248,8 @@ rd /s /q "%localappdata%\Spotify" >nul 2>&1
 del /q "%temp%\SpotifyUninstall.exe" >nul 2>&1
 del /q "%userprofile%\Desktop\Spotify.lnk" >nul 2>&1
 if not exist "%appdata%\Spotify\Spotify.exe" (
+	if "%spotx_installed%" EQU "true" (set "spotx_uninstall_status=true")
 	set "spotify_uninstall_status=true"
-	set "spotx_uninstall_status=true"
 	echo [32mSpotify başarıyla kaldırıldı.[0m
 	timeout /t %delay% /nobreak >nul 2>&1
 ) else (
@@ -308,7 +344,6 @@ exit /b
 
 :spotx_install
 cls & echo ╔═══════════════╗ & echo ║ SpotX Install ║ & echo ╚═══════════════╝
-if "%debug%" EQU "true" (echo [45;97m Debug [0m spotx_update_mode:%spotx_update_mode%)
 if "%spotx_update_mode%" EQU "overwrite" (
 	set "spotx_update_mode= -confirm_spoti_recomended_over"
 ) else if "%spotx_update_mode%" EQU "reinstall" (
@@ -316,7 +351,6 @@ if "%spotx_update_mode%" EQU "overwrite" (
 ) else (
 	set "spotx_update_mode="
 )
-if "%debug%" EQU "true" (echo [45;97m Debug [0m spotx_homepage_content:%spotx_homepage_content%)
 if "%spotx_homepage_content%" EQU "remove" (
 	set "spotx_homepage_content= -podcasts_off"
 ) else if "%spotx_homepage_content%" EQU "keep" (
@@ -324,7 +358,6 @@ if "%spotx_homepage_content%" EQU "remove" (
 ) else (
 	set "spotx_homepage_content="
 )
-if "%debug%" EQU "true" (echo [45;97m Debug [0m spotx_auto_updates:%spotx_auto_updates%)
 if "%spotx_auto_updates%" EQU "block" (
 	set "spotx_auto_updates= -block_update_on"
 ) else if "%spotx_auto_updates%" EQU "allow" (
@@ -402,19 +435,19 @@ if not exist "%localappdata%\spicetify\spicetify.exe" (
 )
 call :spo_stp
 echo Spicetify güncelleniyor...
-for /f %%a in ('spicetify --version') do set "old_spi_ver=%%a"
+for /f %%a in ('spicetify --version') do (set "old_spi_ver=%%a")
 if "%debug%" EQU "true" (echo [45;97m Debug [0m old_spi_ver:!old_spi_ver!)
 powershell -ExecutionPolicy RemoteSigned -Command "spicetify update"
 timeout /t 2 /nobreak >nul 2>&1
-for /f %%a in ('spicetify --version') do set "new_spi_ver=%%a"
+for /f %%a in ('spicetify --version') do (set "new_spi_ver=%%a")
 if "%debug%" EQU "true" (echo [45;97m Debug [0m new_spi_ver:!new_spi_ver!)
 if "!old_spi_ver!" NEQ "!new_spi_ver!" (
 	set "spicetify_update_status=true"
-	echo [32mSpicetify başarıyla güncellendi.[0m
+	echo [32mSpicetify başarıyla güncellendi:[0m '!old_spi_ver!' [90m-^>[0m '!new_spi_ver!'
 	timeout /t %delay% /nobreak >nul 2>&1
 ) else (
 	set "spicetify_update_status=false"
-	echo [31mSpicetify güncellenemedi.[0m
+	echo [33mSpicetify güncellenemedi veya zaten güncel:[0m '!old_spi_ver!' [90m-^>[0m '!new_spi_ver!'
 	if "%pause%" EQU "true" (echo Devam etmek için herhangi bir tuşa basın... & pause >nul 2>&1) else (timeout /t %delay% /nobreak >nul 2>&1)
 )
 exit /b
@@ -422,13 +455,14 @@ exit /b
 :spotify_restore
 cls & echo ╔═════════════════╗ & echo ║ Spotify Restore ║ & echo ╚═════════════════╝
 if not exist "%appdata%\Spotify\Spotify.exe" (
+	set "restore_status=false"
 	echo [31mSpotify yüklü değil, yedek geri yüklenemez.[0m
 	if "%pause%" EQU "true" (echo Devam etmek için herhangi bir tuşa basın... & pause >nul 2>&1) else (timeout /t %delay% /nobreak >nul 2>&1)
 	exit /b
 )
 if not exist "%temp%\SpotifyBackup\prefs." (
-	echo [31mSpotify yedeği bulunamadı, geri yüklenemez[0m
-	if "%pause%" EQU "true" (echo Devam etmek için herhangi bir tuşa basın... & pause >nul 2>&1) else (timeout /t %delay% /nobreak >nul 2>&1)
+	echo [33mSpotify yedeği bulunamadı, geri yüklenemez[0m
+	timeout /t %delay% /nobreak >nul 2>&1
 	exit /b
 )
 call :spo_stp
@@ -439,10 +473,12 @@ xcopy "%temp%\SpotifyBackup\Users\" "%appdata%\Spotify\Users\" /s /e /i /y >nul 
 if exist "%appdata%\Spotify\prefs." (
 	del /q "%appdata%\Spotify\prefs.backup" >nul 2>&1
 	rd /s /q "%temp%\SpotifyBackup" >nul 2>&1
+	set "restore_status=true"
 	echo [32mSpotify yedeği başarıyla geri yüklendi.[0m
 	timeout /t %delay% /nobreak >nul 2>&1
 ) else (
 	move /y "%appdata%\Spotify\prefs.backup" "%appdata%\Spotify\prefs." >nul 2>&1
+	set "restore_status=false"
 	echo [31mSpotify yedeği geri yüklenemedi.[0m
 	if "%pause%" EQU "true" (echo Devam etmek için herhangi bir tuşa basın... & pause >nul 2>&1) else (timeout /t %delay% /nobreak >nul 2>&1)
 )
