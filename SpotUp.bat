@@ -241,7 +241,7 @@ call :spo_stp
 echo Spotify kaldırılıyor...
 if exist "%appdata%\Spotify\Spotify.bak" (set "spotx_installed=true")
 icacls "%localappdata%\Spotify\Update" /reset /t >nul 2>&1
-start /b /w "SpotifyUninstall" "%appdata%\Spotify\Spotify.exe" /uninstall /silent
+start /w "SpotifyUninstall" "%appdata%\Spotify\uninstall.exe" /silent >nul 2>&1
 timeout /t 2 /nobreak >nul 2>&1
 rd /s /q "%appdata%\Spotify" >nul 2>&1
 rd /s /q "%localappdata%\Spotify" >nul 2>&1
@@ -328,7 +328,7 @@ if not exist "%temp%\SpotifySetup.exe" (
 echo [32mSpotify başarıyla indirildi.[0m
 timeout /t %delay% /nobreak >nul 2>&1
 echo Spotify yükleniyor...
-start /b /w "SpotifyInstall" "%temp%\SpotifySetup.exe" /silent >nul 2>&1
+start /w "SpotifyInstall" "%temp%\SpotifySetup.exe" >nul 2>&1
 timeout /t 2 /nobreak >nul 2>&1
 if exist "%appdata%\Spotify\Spotify.exe" (
 	set "spotify_install_status=true"
