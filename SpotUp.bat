@@ -62,7 +62,7 @@ set spotx_homepage_content=remove
 :: Spotify otomatik güncelleme seçenekleri:
 :: (Otomatik güncellemeler, SpotX'in yeniden yüklenmesini ve Spicetify'ı tekrar aktifleştirmek için "spicetify apply" komutunun çalıştırılmasını gerektirebilir.)
 ::  block -> Otomatik güncellemeleri engeller. (Önerilen)
-::  allow -> Otomatik güncellemelere izin verir. (Varsayılan)
+::  allow -> Otomatik güncellemelere izin verir. (Varsayılan) (Otomatik güncelleştirmeler SpotX yamasını bozabilir.)
 :: prompt -> Kurulum sırasında kullanıcıya sorar.
 set spotx_auto_updates=block
 
@@ -85,26 +85,28 @@ set debug=false
 :: ║  End of Config  ║
 :: ╚═════════════════╝
 
+if "%preset%" NEQ "custom" (
+	set "spotify_uninstall=false" & set "spotify_install=false"
+	set "spotx_uninstall=false" & set "spotx_install=false"
+	set "spicetify_uninstall=false" & set "spicetify_install=false" & set "spicetify_update=false"
+	set "backup=false"
+)
+
 if "%preset%" EQU "install" (
-	set "spotify_uninstall=false" & set "spotify_install=true"
-	set "spotx_uninstall=false" & set "spotx_install=true"
-	set "spicetify_uninstall=false" & set "spicetify_install=true" & set "spicetify_update=false"
-	set "backup=false"
+	set "spotify_install=true"
+	set "spotx_install=true"
+	set "spicetify_install=true"
 ) else if "%preset%" EQU "uninstall" (
-	set "spotify_uninstall=true" & set "spotify_install=false"
-	set "spotx_uninstall=true" & set "spotx_install=false"
-	set "spicetify_uninstall=true" & set "spicetify_install=false" & set "spicetify_update=false"
-	set "backup=false"
+	set "spotify_uninstall=true"
+	set "spotx_uninstall=true"
+	set "spicetify_uninstall=true"
 ) else if "%preset%" EQU "reinstall" (
 	set "spotify_uninstall=true" & set "spotify_install=true"
 	set "spotx_uninstall=true" & set "spotx_install=true"
-	set "spicetify_uninstall=true" & set "spicetify_install=true" & set "spicetify_update=false"
+	set "spicetify_uninstall=true" & set "spicetify_install=true"
 	set "backup=true"
 ) else if "%preset%" EQU "update" (
-	set "spotify_uninstall=false" & set "spotify_install=false"
-	set "spotx_uninstall=false" & set "spotx_install=false"
-	set "spicetify_uninstall=false" & set "spicetify_install=false" & set "spicetify_update=true"
-	set "backup=false"
+	set "spicetify_update=true"
 )
 
 if "%spicetify_install%" EQU "true" (
@@ -197,11 +199,11 @@ for %%v in (
 cls
 echo ╔═══════════╦══════════╦══════════╦══════════╗
 echo ║ [94mProg/Drum[0m ║  [94mKaldır[0m  ║  [94mYükle[0m   ║ [94mGüncelle[0m ║
-echo ╠═══════════╬══════════╬══════════╬══════════╣   ╔════════════════════════════════════════╗
-echo ║ [92mSpotify[0m   ║    !spotify_uninstall_status!    ║    !spotify_install_status!    ║    !spotify_update_status!    ║   ║ ✔️ [90m-^>[0m İşlem yapıldı ve başarılı oldu.  ║
-echo ╠═══════════╬══════════╬══════════╬══════════╣   ║ ❌ [90m-^>[0m İşlem denendi ve başarısız oldu. ║
-echo ║ [93mSpotX[0m     ║    !spotx_uninstall_status!    ║    !spotx_install_status!    ║    !spotx_update_status!    ║   ║ ➖ [90m-^>[0m İşlem yapılmadı/gerek yoktu.     ║
-echo ╠═══════════╬══════════╬══════════╬══════════╣   ╚════════════════════════════════════════╝
+echo ╠═══════════╬══════════╬══════════╬══════════╣   ╔═════════════════════════════════════════╗
+echo ║ [92mSpotify[0m   ║    !spotify_uninstall_status!    ║    !spotify_install_status!    ║    !spotify_update_status!    ║   ║ ✔️ [90m-^>[0m İşlem yapıldı ve başarılı oldu.   ║
+echo ╠═══════════╬══════════╬══════════╬══════════╣   ║ ❌ [90m-^>[0m İşlem denendi ve başarısız oldu.  ║
+echo ║ [93mSpotX[0m     ║    !spotx_uninstall_status!    ║    !spotx_install_status!    ║    !spotx_update_status!    ║   ║ ➖ [90m-^>[0m İşlem yapılmadı veya gerek yoktu. ║
+echo ╠═══════════╬══════════╬══════════╬══════════╣   ╚═════════════════════════════════════════╝
 echo ║ [91mSpicetify[0m ║    !spicetify_uninstall_status!    ║    !spicetify_install_status!    ║    !spicetify_update_status!    ║
 echo ╚═══════════╩══════════╩══════════╩══════════╝
 echo [96mYedekleme:[0m !backup_status!  [96mGeri Yükleme:[0m !restore_status!
@@ -437,7 +439,7 @@ call :spo_stp
 echo Spicetify güncelleniyor...
 for /f %%a in ('spicetify --version') do (set "old_spi_ver=%%a")
 if "%debug%" EQU "true" (echo [45;97m Debug [0m old_spi_ver:!old_spi_ver!)
-powershell -ExecutionPolicy RemoteSigned -Command "spicetify update"
+powershell -ExecutionPolicy RemoteSigned -Command "spicetify upgrade"
 timeout /t 2 /nobreak >nul 2>&1
 for /f %%a in ('spicetify --version') do (set "new_spi_ver=%%a")
 if "%debug%" EQU "true" (echo [45;97m Debug [0m new_spi_ver:!new_spi_ver!)
