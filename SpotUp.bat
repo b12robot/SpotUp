@@ -151,7 +151,7 @@ if "%spotx_auto_updates%" NEQ "block" if "%spotx_auto_updates%" NEQ "allow" if "
     echo [41;97m Error [0m 'spotx_auto_updates' değişkeni için geçersiz değer: '%spotx_auto_updates%'
     set "config_error=true"
 )
-echo %delay% | findstr /r "^[1-9]$" >nul 2>&1 || (
+echo %delay%| findstr /r "^[1-9]$" >nul 2>&1 || (
 	echo [41;97m Error [0m 'delay' değişkeni için geçersiz değer: '%delay%', 1-9 aralığında olmalı.
 	set "config_error=true"
 )
