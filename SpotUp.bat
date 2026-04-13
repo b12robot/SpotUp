@@ -151,8 +151,8 @@ if "%spotx_auto_updates%" NEQ "block" if "%spotx_auto_updates%" NEQ "allow" if "
     echo [41;97m Error [0m 'spotx_auto_updates' değişkeni için geçersiz değer: '%spotx_auto_updates%'
     set "config_error=true"
 )
-echo %delay%| findstr /r "^[1-9][0-9]?$" >nul 2>&1 || (
-	echo [41;97m Error [0m 'delay' değişkeni için geçersiz değer: '%delay%', 1-99 aralığında olmalı.
+echo %delay% | findstr /r "^[1-9]$" >nul 2>&1 || (
+	echo [41;97m Error [0m 'delay' değişkeni için geçersiz değer: '%delay%', 1-9 aralığında olmalı.
 	set "config_error=true"
 )
 if "%config_error%" EQU "true" (
@@ -207,7 +207,7 @@ echo ╠═══════════╬══════════╬═
 echo ║ [91mSpicetify[0m ║    !spicetify_uninstall_status!    ║    !spicetify_install_status!    ║    !spicetify_update_status!    ║
 echo ╚═══════════╩══════════╩══════════╩══════════╝
 echo [96mYedekleme:[0m !backup_status!  [96mGeri Yükleme:[0m !restore_status!
-if defined fatal_step (set "exit_code=1" & echo [41;97m Error [0m: !fatal_step!)
+if defined fatal_step (set "exit_code=1" & echo [41;97m Error [0m !fatal_step!)
 echo Çıkmak için herhangi bir tuşa basın... & endlocal & pause >nul 2>&1 & exit /b %exit_code%
 
 :run
