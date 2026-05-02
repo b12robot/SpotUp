@@ -1,5 +1,7 @@
 *
-!.github\workflows\release.yml
+!.github\
+!.github\**
+!.editorconfig
 !.gitattributes
 !.gitignore
 !LICENSE
