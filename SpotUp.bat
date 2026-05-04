@@ -213,7 +213,7 @@ exit /b !errorlevel!
 :backup_spotify
 cls & echo ╔════════════════╗ & echo ║ Spotify Backup ║ & echo ╚════════════════╝
 if not exist "%appdata%\Spotify\Spotify.exe" (
-	set "restore_status=false"
+	set "backup_status=false"
 	echo [31mSpotify yüklü değil, yedekleme yapılamaz.[0m
 	call :wait
 	exit /b 0
@@ -256,18 +256,18 @@ if not exist "%temp%\SpotifyBackup\prefs." (
 )
 call :run stop_spotify || exit /b 1
 echo Spotify yedeği geri yükleniyor...
-move /y "%appdata%\Spotify\prefs." "%appdata%\Spotify\prefs.backup" >nul 2>&1
+move /y "%appdata%\Spotify\prefs." "%appdata%\Spotify\prefs.bak" >nul 2>&1
 xcopy "%temp%\SpotifyBackup\prefs." "%appdata%\Spotify\" /i /y >nul 2>&1
 xcopy "%temp%\SpotifyBackup\Users\" "%appdata%\Spotify\Users\" /s /e /i /y >nul 2>&1
 if exist "%appdata%\Spotify\prefs." (
-	del /q "%appdata%\Spotify\prefs.backup" >nul 2>&1
+	del /q "%appdata%\Spotify\prefs.bak" >nul 2>&1
 	rd /s /q "%temp%\SpotifyBackup" >nul 2>&1
 	set "restore_status=true"
 	echo [32mSpotify yedeği başarıyla geri yüklendi.[0m
 	call :wait
 	exit /b 0
 )
-move /y "%appdata%\Spotify\prefs.backup" "%appdata%\Spotify\prefs." >nul 2>&1
+move /y "%appdata%\Spotify\prefs.bak" "%appdata%\Spotify\prefs." >nul 2>&1
 set "restore_status=false"
 echo [31mSpotify yedeği geri yüklenemedi.[0m
 call :wait
@@ -499,10 +499,10 @@ if not exist "%localappdata%\spicetify\spicetify.exe" (
 )
 call :run stop_spotify || exit /b 1
 echo Spicetify güncelleniyor...
-for /f %%a in ('spicetify --version') do (set "old_spi_ver=%%a")
+for /f %%a in ('%localappdata%\spicetify\spicetify.exe --version') do (set "old_spi_ver=%%a")
 powershell -ExecutionPolicy RemoteSigned -Command "spicetify upgrade"
 timeout /t 2 /nobreak >nul 2>&1
-for /f %%a in ('spicetify --version') do (set "new_spi_ver=%%a")
+for /f %%a in ('%localappdata%\spicetify\spicetify.exe --version') do (set "new_spi_ver=%%a")
 if "!old_spi_ver!" NEQ "!new_spi_ver!" (
 	set "spicetify_update_status=true"
 	echo [32mSpicetify başarıyla güncellendi:[0m '!old_spi_ver!' [90m-^>[0m '!new_spi_ver!'
