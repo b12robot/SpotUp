@@ -72,14 +72,11 @@ set spotx_auto_updates=block
 :: İşlemler öncesi Spotify ayarlarını ve kullanıcı verilerini yedekler, işlemler tamamlandığında geri yükler. (true/false)
 set backup=true
 
-:: Hata durumunda bir sonraki işleme geçmeden önce kullanıcı onayı bekler. (true/false)
+:: Her işlem sonunda sonraki işleme geçmek için kullanıcı onayı bekler. (true/false)
 set pause=false
 
 :: İşlemler arasındaki bekleme süresi. (1-9 Saniye)
 set delay=1
-
-:: İşlemler sırasında ekstra hata ayıklama bilgilerini gösterir. (true/false)
-set debug=false
 
 :: ╔═════════════════╗
 :: ║  End of Config  ║
@@ -131,7 +128,7 @@ if "%change%" EQU "false" (
 )
 
 set "config_error=false"
-for %%v in (spotify_uninstall spotify_install spotx_uninstall spotx_install spicetify_uninstall spicetify_install spicetify_update backup pause debug) do (
+for %%v in (spotify_uninstall spotify_install spotx_uninstall spotx_install spicetify_uninstall spicetify_install spicetify_update backup pause) do (
     if "!%%v!" NEQ "true" if "!%%v!" NEQ "false" (
         echo [41;97m Error [0m '%%v' değişkeni için geçersiz değer: '!%%v!', true/false olmalı.
         set "config_error=true"
@@ -183,13 +180,13 @@ for %%v in (
 )
 cls
 echo ╔═══════════╦══════════╦══════════╦══════════╗
-echo ║ [94mProg/Drum[0m ║  [94mKaldır[0m  ║  [94mYükle[0m   ║ [94mGüncelle[0m ║
-echo ╠═══════════╬══════════╬══════════╬══════════╣   ╔═════════════════════════════════════════╗
-echo ║ [92mSpotify[0m   ║    !spotify_uninstall_status!    ║    !spotify_install_status!    ║    !spotify_update_status!    ║   ║ ✔️ [90m-^>[0m İşlem yapıldı ve başarılı oldu.   ║
-echo ╠═══════════╬══════════╬══════════╬══════════╣   ║ ❌ [90m-^>[0m İşlem denendi ve başarısız oldu.  ║
-echo ║ [93mSpotX[0m     ║    !spotx_uninstall_status!    ║    !spotx_install_status!    ║    !spotx_update_status!    ║   ║ ➖ [90m-^>[0m İşlem yapılmadı veya gerek yoktu. ║
-echo ╠═══════════╬══════════╬══════════╬══════════╣   ╚═════════════════════════════════════════╝
-echo ║ [91mSpicetify[0m ║    !spicetify_uninstall_status!    ║    !spicetify_install_status!    ║    !spicetify_update_status!    ║
+echo ║ [94mProg/Drum[0m ║  [94mKaldır[0m  ║  [94mYükle[0m   ║ [94mGüncelle[0m ║   ╔════════════════════════════════════════╗
+echo ╠═══════════╬══════════╬══════════╬══════════╣   ║ ✔️ [90m-^>[0m Başarıyla tamamlandı.            ║
+echo ║ [92mSpotify[0m   ║    !spotify_uninstall_status!    ║    !spotify_install_status!    ║    !spotify_update_status!    ║   ║ ❌ [90m-^>[0m Hata nedeniyle tamamlanamadı.    ║
+echo ╠═══════════╬══════════╬══════════╬══════════╣   ║ ⚠️ [90m-^>[0m Tamamlandı ancak sorun olabilir. ║
+echo ║ [93mSpotX[0m     ║    !spotx_uninstall_status!    ║    !spotx_install_status!    ║    !spotx_update_status!    ║   ║ ⏩ [90m-^>[0m Koşul sağlanmadığı için atlandı. ║
+echo ╠═══════════╬══════════╬══════════╬══════════╣   ║ ➖ [90m-^>[0m Yapılandırmada seçilmedi.        ║
+echo ║ [91mSpicetify[0m ║    !spicetify_uninstall_status!    ║    !spicetify_install_status!    ║    !spicetify_update_status!    ║   ╚════════════════════════════════════════╝
 echo ╚═══════════╩══════════╩══════════╩══════════╝
 echo [96mYedekleme:[0m !backup_status!  [96mGeri Yükleme:[0m !restore_status!
 set "exit_code=0"
@@ -210,17 +207,24 @@ exit /b 0
 
 :run
 call :%~1
-if "!errorlevel!" NEQ "0" (set "fatal_step=%~1")
+if !errorlevel! NEQ 0 (if not defined fatal_step (set "fatal_step=%~1"))
 exit /b !errorlevel!
 
 :backup_spotify
 cls & echo ╔════════════════╗ & echo ║ Spotify Backup ║ & echo ╚════════════════╝
+if not exist "%appdata%\Spotify\Spotify.exe" (
+	set "restore_status=false"
+	echo [31mSpotify yüklü değil, yedekleme yapılamaz.[0m
+	call :wait
+	exit /b 0
+)
 if not exist "%appdata%\Spotify\prefs." (
+	set "backup_status=warn"
 	echo [33mYedeklenecek Spotify dosyası bulunamadı.[0m
 	call :wait
 	exit /b 0
 )
-call :stop_spotify || exit /b 1
+call :run stop_spotify || exit /b 1
 echo Spotify yedekleniyor...
 rd /s /q "%temp%\SpotifyBackup" >nul 2>&1
 xcopy "%appdata%\Spotify\prefs." "%temp%\SpotifyBackup\" /i /y >nul 2>&1
@@ -236,110 +240,48 @@ echo [31mSpotify yedeklenemedi.[0m
 call :wait
 exit /b 1
 
-:uninstall_spotify
-cls & echo ╔═══════════════════╗ & echo ║ Spotify Uninstall ║ & echo ╚═══════════════════╝
+:restore_spotify
+cls & echo ╔═════════════════╗ & echo ║ Spotify Restore ║ & echo ╚═════════════════╝
 if not exist "%appdata%\Spotify\Spotify.exe" (
-	echo [33mSpotify yüklü değil, kaldırılamaz.[0m
+	set "restore_status=false"
+	echo [31mSpotify yüklü değil, yedek geri yüklenemez.[0m
 	call :wait
 	exit /b 0
 )
-call :stop_spotify || exit /b 1
-echo Spotify kaldırılıyor...
-set "spotx_installed=false"
-if exist "%appdata%\Spotify\Spotify.bak" (set "spotx_installed=true")
-icacls "%localappdata%\Spotify\Update" /reset /t >nul 2>&1
-start /w "uninstall_spotify" "%appdata%\Spotify\uninstall.exe" /silent >nul 2>&1
-timeout /t 2 /nobreak >nul 2>&1
-set "wait_uninstaller_retry=1"
-set "wait_uninstaller_max=5"
-:wait_uninstaller
-timeout /t 2 /nobreak >nul 2>&1
-tasklist | findstr /i "SpotifyUninstall.exe" >nul 2>&1
-if "%debug%" EQU "true" (echo [45;97m Debug [0m wait_uninstaller_tasklist:!errorlevel!)
-if "!errorlevel!" EQU "0" (
-	if "%debug%" EQU "true" (echo [45;97m Debug [0m wait_uninstaller_retry:%wait_uninstaller_retry%)
-	if "%wait_uninstaller_retry%" GEQ "%wait_uninstaller_max%" (
-		set "spotify_uninstall_status=false"
-		echo [31mSpotify'ın kaldırılması beklendiğinden uzun sürdü, Spotify'ı manuel olarak kaldırmayı deneyin.[0m
-		call :wait
-		exit /b 1
-	)
-	set /a "wait_uninstaller_retry+=1"
-	goto :wait_uninstaller
-)
-rd /s /q "%appdata%\Spotify" >nul 2>&1
-rd /s /q "%localappdata%\Spotify" >nul 2>&1
-del /q "%temp%\SpotifyUninstall.exe" >nul 2>&1
-del /q "%userprofile%\Desktop\Spotify.lnk" >nul 2>&1
-if not exist "%appdata%\Spotify\Spotify.exe" (
-	if "%spotx_installed%" EQU "true" (set "spotx_uninstall_status=true")
-	set "spotify_uninstall_status=true"
-	echo [32mSpotify başarıyla kaldırıldı.[0m
+if not exist "%temp%\SpotifyBackup\prefs." (
+	set "restore_status=warn"
+	echo [33mSpotify yedeği bulunamadı, geri yüklenemez[0m
 	call :wait
 	exit /b 0
 )
-set "spotify_uninstall_status=false"
-echo [31mSpotify kaldırılamadı.[0m
-call :wait
-exit /b 0
-
-:uninstall_spotx
-cls & echo ╔═════════════════╗ & echo ║ SpotX Uninstall ║ & echo ╚═════════════════╝
-if not exist "%appdata%\Spotify\Spotify.bak" (
-	echo [33mSpotX yüklü değil, kaldırılamaz.[0m
+call :run stop_spotify || exit /b 1
+echo Spotify yedeği geri yükleniyor...
+move /y "%appdata%\Spotify\prefs." "%appdata%\Spotify\prefs.backup" >nul 2>&1
+xcopy "%temp%\SpotifyBackup\prefs." "%appdata%\Spotify\" /i /y >nul 2>&1
+xcopy "%temp%\SpotifyBackup\Users\" "%appdata%\Spotify\Users\" /s /e /i /y >nul 2>&1
+if exist "%appdata%\Spotify\prefs." (
+	del /q "%appdata%\Spotify\prefs.backup" >nul 2>&1
+	rd /s /q "%temp%\SpotifyBackup" >nul 2>&1
+	set "restore_status=true"
+	echo [32mSpotify yedeği başarıyla geri yüklendi.[0m
 	call :wait
 	exit /b 0
 )
-call :stop_spotify || exit /b 1
-echo SpotX kaldırılıyor...
-del /q "%appdata%\Spotify\dpapi.dll" >nul 2>&1
-del /q "%appdata%\Spotify\Spotify.exe" >nul 2>&1
-move "%appdata%\Spotify\Spotify.bak" "%appdata%\Spotify\Spotify.exe" >nul 2>&1
-del /q "%appdata%\Spotify\config.ini" >nul 2>&1
-del /q "%appdata%\Spotify\apps\xpui.spa" >nul 2>&1
-move "%appdata%\Spotify\apps\xpui.bak" "%appdata%\Spotify\apps\xpui.spa" >nul 2>&1
-del /q "%appdata%\Spotify\blockthespot_log.txt" >nul 2>&1
-if not exist "%appdata%\Spotify\Spotify.bak" (
-	set "spotx_uninstall_status=true"
-	echo [32mSpotX başarıyla kaldırıldı.[0m
-	call :wait
-	exit /b 0
-)
-set "spotx_uninstall_status=false"
-echo [31mSpotX kaldırılamadı.[0m
-call :wait
-exit /b 0
-
-:uninstall_spicetify
-cls & echo ╔═════════════════════╗ & echo ║ Spicetify Uninstall ║ & echo ╚═════════════════════╝
-if not exist "%localappdata%\spicetify\spicetify.exe" (
-	echo [33mSpicetify yüklü değil, kaldırılamaz.[0m
-	call :wait
-	exit /b 0
-)
-call :stop_spotify || exit /b 1
-echo Spicetify kaldırılıyor...
-rd /s /q "%appdata%\spicetify" >nul 2>&1
-rd /s /q "%localappdata%\spicetify" >nul 2>&1
-if not exist "%localappdata%\spicetify\spicetify.exe" (
-	set "spicetify_uninstall_status=true"
-	echo [32mSpicetify başarıyla kaldırıldı.[0m
-	call :wait
-	exit /b 0
-)
-set "spicetify_uninstall_status=false"
-echo [31mSpicetify kaldırılamadı.[0m
+move /y "%appdata%\Spotify\prefs.backup" "%appdata%\Spotify\prefs." >nul 2>&1
+set "restore_status=false"
+echo [31mSpotify yedeği geri yüklenemedi.[0m
 call :wait
 exit /b 0
 
 :install_spotify
 cls & echo ╔═════════════════╗ & echo ║ Spotify Install ║ & echo ╚═════════════════╝
 if exist "%appdata%\Spotify\Spotify.exe" (
-	echo [33mSpotify zaten yüklü.[0m
+	set "spotify_install_status=skip"
+	echo [36mSpotify zaten yüklü.[0m
 	call :wait
 	exit /b 0
 )
-call :stop_spotify || exit /b 1
+call :run stop_spotify || exit /b 1
 echo Spotify indiriliyor...
 del /q "%temp%\SpotifySetup.exe" >nul 2>&1
 powershell -ExecutionPolicy RemoteSigned -Command "Invoke-WebRequest -Uri 'https://download.scdn.co/SpotifySetup.exe' -OutFile '%temp%\SpotifySetup.exe' -UseBasicParsing"
@@ -363,6 +305,52 @@ if exist "%appdata%\Spotify\Spotify.exe" (
 )
 call :wait
 del /q "%temp%\SpotifySetup.exe" >nul 2>&1
+exit /b 0
+
+:uninstall_spotify
+cls & echo ╔═══════════════════╗ & echo ║ Spotify Uninstall ║ & echo ╚═══════════════════╝
+if not exist "%appdata%\Spotify\Spotify.exe" (
+	set "spotify_uninstall_status=skip"
+	echo [36mSpotify yüklü değil, kaldırılamaz.[0m
+	call :wait
+	exit /b 0
+)
+call :run stop_spotify || exit /b 1
+echo Spotify kaldırılıyor...
+set "spotx_installed=false"
+if exist "%appdata%\Spotify\Spotify.bak" (set "spotx_installed=true")
+icacls "%localappdata%\Spotify\Update" /reset /t >nul 2>&1
+start /w "uninstall_spotify" "%appdata%\Spotify\uninstall.exe" /silent >nul 2>&1
+timeout /t 2 /nobreak >nul 2>&1
+set "wait_retry=1"
+set "wait_max=5"
+:retry_wait
+tasklist | findstr /i "SpotifyUninstall.exe" >nul 2>&1
+if !errorlevel! EQU 0 (
+	timeout /t 2 /nobreak >nul 2>&1
+	if !wait_retry! GEQ !wait_max! (
+		set "spotify_uninstall_status=false"
+		echo [31mSpotify'ın kaldırılması beklendiğinden uzun sürdü, Spotify'ı manuel olarak kaldırmayı deneyin.[0m
+		call :wait
+		exit /b 1
+	)
+	set /a "wait_retry+=1"
+	goto :retry_wait
+)
+rd /s /q "%appdata%\Spotify" >nul 2>&1
+rd /s /q "%localappdata%\Spotify" >nul 2>&1
+del /q "%temp%\SpotifyUninstall.exe" >nul 2>&1
+del /q "%userprofile%\Desktop\Spotify.lnk" >nul 2>&1
+if not exist "%appdata%\Spotify\Spotify.exe" (
+	if "%spotx_installed%" EQU "true" (set "spotx_uninstall_status=true")
+	set "spotify_uninstall_status=true"
+	echo [32mSpotify başarıyla kaldırıldı.[0m
+	call :wait
+	exit /b 0
+)
+set "spotify_uninstall_status=false"
+echo [31mSpotify kaldırılamadı.[0m
+call :wait
 exit /b 0
 
 :install_spotx
@@ -389,7 +377,6 @@ if "%spotx_auto_updates%" EQU "block" (
 	set "spotx_auto_updates="
 )
 set "param=!spotx_update_mode!!spotx_homepage_content!!spotx_auto_updates! -confirm_uninstall_ms_spoti -start_spoti"
-if "%debug%" EQU "true" (echo [45;97m Debug [0m param:!param! & echo Devam etmek için herhangi bir tuşa basın... & pause >nul 2>&1)
 if not exist "%appdata%\Spotify\Spotify.exe" (
 	set "spotx_install_status=false"
 	echo [31mSpotify yüklü değil, SpotX yüklenemez.[0m
@@ -397,12 +384,13 @@ if not exist "%appdata%\Spotify\Spotify.exe" (
 	exit /b 0
 )
 if exist "%appdata%\Spotify\Spotify.bak" (
-	echo [33mSpotX zaten yüklü.[0m
+	set "spotx_install_status=skip"
+	echo [36mSpotX zaten yüklü.[0m
 	call :wait
 	exit /b 0
 )
-call :stop_spotify || exit /b 1
-echo SpotX yükleniyor... 
+call :run stop_spotify || exit /b 1
+echo SpotX yükleniyor...
 powershell -ExecutionPolicy RemoteSigned -Command "Invoke-Expression ""& { $(Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/SpotX-Official/spotx-official.github.io/main/run.ps1' -UseBasicParsing) } !param!"""
 if exist "%appdata%\Spotify\Spotify.bak" (
 	set "spotx_install_status=true"
@@ -415,6 +403,35 @@ echo [31mSpotX yüklenemedi.[0m
 call :wait
 exit /b 0
 
+:uninstall_spotx
+if "!spotx_uninstall_status!" EQU "true" (exit /b 0)
+cls & echo ╔═════════════════╗ & echo ║ SpotX Uninstall ║ & echo ╚═════════════════╝
+if not exist "%appdata%\Spotify\Spotify.bak" (
+	set "spotx_uninstall_status=skip"
+	echo [36mSpotX yüklü değil, kaldırılamaz.[0m
+	call :wait
+	exit /b 0
+)
+call :run stop_spotify || exit /b 1
+echo SpotX kaldırılıyor...
+del /q "%appdata%\Spotify\dpapi.dll" >nul 2>&1
+del /q "%appdata%\Spotify\Spotify.exe" >nul 2>&1
+move "%appdata%\Spotify\Spotify.bak" "%appdata%\Spotify\Spotify.exe" >nul 2>&1
+del /q "%appdata%\Spotify\config.ini" >nul 2>&1
+del /q "%appdata%\Spotify\apps\xpui.spa" >nul 2>&1
+move "%appdata%\Spotify\apps\xpui.bak" "%appdata%\Spotify\apps\xpui.spa" >nul 2>&1
+del /q "%appdata%\Spotify\blockthespot_log.txt" >nul 2>&1
+if not exist "%appdata%\Spotify\Spotify.bak" (
+	set "spotx_uninstall_status=true"
+	echo [32mSpotX başarıyla kaldırıldı.[0m
+	call :wait
+	exit /b 0
+)
+set "spotx_uninstall_status=false"
+echo [31mSpotX kaldırılamadı.[0m
+call :wait
+exit /b 0
+
 :install_spicetify
 cls & echo ╔═══════════════════╗ & echo ║ Spicetify Install ║ & echo ╚═══════════════════╝
 if not exist "%appdata%\Spotify\Spotify.exe" (
@@ -424,12 +441,13 @@ if not exist "%appdata%\Spotify\Spotify.exe" (
 	exit /b 0
 )
 if exist "%localappdata%\spicetify\spicetify.exe" (
-	echo [33mSpicetify zaten yüklü.[0m
+	set "spicetify_install_status=skip"
+	echo [36mSpicetify zaten yüklü.[0m
 	call :wait
 	exit /b 0
 )
-call :stop_spotify || exit /b 1
-echo Spicetify yükleniyor... 
+call :run stop_spotify || exit /b 1
+echo Spicetify yükleniyor...
 powershell -ExecutionPolicy RemoteSigned -Command "Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/spicetify/cli/main/install.ps1' -UseBasicParsing | Invoke-Expression"
 if exist "%localappdata%\spicetify\spicetify.exe" (
 	set "spicetify_install_status=true"
@@ -439,6 +457,29 @@ if exist "%localappdata%\spicetify\spicetify.exe" (
 )
 set "spicetify_install_status=false"
 echo [31mSpicetify yüklenemedi.[0m
+call :wait
+exit /b 0
+
+:uninstall_spicetify
+cls & echo ╔═════════════════════╗ & echo ║ Spicetify Uninstall ║ & echo ╚═════════════════════╝
+if not exist "%localappdata%\spicetify\spicetify.exe" (
+	set "spicetify_uninstall_status=skip"
+	echo [36mSpicetify yüklü değil, kaldırılamaz.[0m
+	call :wait
+	exit /b 0
+)
+call :run stop_spotify || exit /b 1
+echo Spicetify kaldırılıyor...
+rd /s /q "%appdata%\spicetify" >nul 2>&1
+rd /s /q "%localappdata%\spicetify" >nul 2>&1
+if not exist "%localappdata%\spicetify\spicetify.exe" (
+	set "spicetify_uninstall_status=true"
+	echo [32mSpicetify başarıyla kaldırıldı.[0m
+	call :wait
+	exit /b 0
+)
+set "spicetify_uninstall_status=false"
+echo [31mSpicetify kaldırılamadı.[0m
 call :wait
 exit /b 0
 
@@ -456,54 +497,20 @@ if not exist "%localappdata%\spicetify\spicetify.exe" (
 	call :wait
 	exit /b 0
 )
-call :stop_spotify || exit /b 1
+call :run stop_spotify || exit /b 1
 echo Spicetify güncelleniyor...
 for /f %%a in ('spicetify --version') do (set "old_spi_ver=%%a")
-if "%debug%" EQU "true" (echo [45;97m Debug [0m old_spi_ver:!old_spi_ver!)
 powershell -ExecutionPolicy RemoteSigned -Command "spicetify upgrade"
 timeout /t 2 /nobreak >nul 2>&1
 for /f %%a in ('spicetify --version') do (set "new_spi_ver=%%a")
-if "%debug%" EQU "true" (echo [45;97m Debug [0m new_spi_ver:!new_spi_ver!)
 if "!old_spi_ver!" NEQ "!new_spi_ver!" (
 	set "spicetify_update_status=true"
 	echo [32mSpicetify başarıyla güncellendi:[0m '!old_spi_ver!' [90m-^>[0m '!new_spi_ver!'
 	call :wait
 	exit /b 0
 )
-set "spicetify_update_status=false"
+set "spicetify_update_status=warn"
 echo [33mSpicetify güncellenemedi veya zaten güncel:[0m '!old_spi_ver!' [90m-^>[0m '!new_spi_ver!'
-call :wait
-exit /b 0
-
-:restore_spotify
-cls & echo ╔═════════════════╗ & echo ║ Spotify Restore ║ & echo ╚═════════════════╝
-if not exist "%appdata%\Spotify\Spotify.exe" (
-	set "restore_status=false"
-	echo [31mSpotify yüklü değil, yedek geri yüklenemez.[0m
-	call :wait
-	exit /b 0
-)
-if not exist "%temp%\SpotifyBackup\prefs." (
-	echo [33mSpotify yedeği bulunamadı, geri yüklenemez[0m
-	call :wait
-	exit /b 0
-)
-call :stop_spotify || exit /b 1
-echo Spotify yedeği geri yükleniyor...
-move /y "%appdata%\Spotify\prefs." "%appdata%\Spotify\prefs.backup" >nul 2>&1
-xcopy "%temp%\SpotifyBackup\prefs." "%appdata%\Spotify\" /i /y >nul 2>&1
-xcopy "%temp%\SpotifyBackup\Users\" "%appdata%\Spotify\Users\" /s /e /i /y >nul 2>&1
-if exist "%appdata%\Spotify\prefs." (
-	del /q "%appdata%\Spotify\prefs.backup" >nul 2>&1
-	rd /s /q "%temp%\SpotifyBackup" >nul 2>&1
-	set "restore_status=true"
-	echo [32mSpotify yedeği başarıyla geri yüklendi.[0m
-	call :wait
-	exit /b 0
-)
-move /y "%appdata%\Spotify\prefs.backup" "%appdata%\Spotify\prefs." >nul 2>&1
-set "restore_status=false"
-echo [31mSpotify yedeği geri yüklenemedi.[0m
 call :wait
 exit /b 0
 
@@ -513,36 +520,32 @@ if not exist "%appdata%\Spotify\Spotify.exe" (
 	timeout /t %delay% /nobreak >nul 2>&1
 	exit /b 0
 )
-tasklist | findstr /i "Spotify.exe" >nul 2>&1
-if "%debug%" EQU "true" (echo [45;97m Debug [0m stop_tasklist_1:!errorlevel!)
-if "!errorlevel!" EQU "1" (
-	echo [33mSpotify zaten durdurulmuş.[0m
-	timeout /t %delay% /nobreak >nul 2>&1
-	exit /b 0
-)
 set "stop_retry=1"
 set "stop_max=3"
-echo Spotify durduruluyor...
-:retry_stop
-taskkill /f /im "Spotify.exe" >nul 2>&1
-timeout /t 2 /nobreak >nul 2>&1
+:stop_process
 tasklist | findstr /i "Spotify.exe" >nul 2>&1
-if "%debug%" EQU "true" (echo [45;97m Debug [0m stop_tasklist_2:!errorlevel!)
-if "!errorlevel!" EQU "1" (
+if !errorlevel! EQU 0 (
+	if !stop_retry! EQU 1 (
+		echo Spotify durduruluyor...
+	) else (
+		echo [33mSpotify durdurulamadı, tekrar deneniyor...[0m
+	)
+	taskkill /im "Spotify.exe" /f /t >nul 2>&1
+	timeout /t 2 /nobreak >nul 2>&1
+	if !stop_retry! GEQ !stop_max! (
+		echo [31mSpotify !stop_retry! kez denemenin ardından durdurulamadı, Spotify'ı manuel olarak kapatmayı deneyin.[0m
+		call :wait
+		exit /b 1
+	)
+	set /a "stop_retry+=1"
+	goto :stop_process
+)
+if !stop_retry! EQU 1 (
+	echo [36mSpotify zaten durdurulmuş.[0m
+) else (
 	echo [32mSpotify başarıyla durduruldu.[0m
-	timeout /t %delay% /nobreak >nul 2>&1
-	exit /b 0
 )
-if "%debug%" EQU "true" (echo [45;97m Debug [0m stop_retry:%stop_retry%)
-if "%stop_retry%" GEQ "%stop_max%" (
-	echo [31mSpotify %stop_retry% kez denemenin ardından durdurulamadı, Spotify'ı manuel olarak kapatmayı deneyin.[0m
-	call :wait
-	exit /b 1
-)
-echo [31mSpotify durdurulamadı, tekrar deneniyor...[0m
 timeout /t %delay% /nobreak >nul 2>&1
-set /a "stop_retry+=1"
-goto :retry_stop
 exit /b 0
 
 :wait
@@ -560,6 +563,10 @@ if "%value%" EQU "true" (
     set "%varname%=✔️"
 ) else if "%value%" EQU "false" (
     set "%varname%=❌"
+) else if "%value%" EQU "warn" (
+    set "%varname%=⚠️"
+) else if "%value%" EQU "skip" (
+    set "%varname%=⏩"
 ) else (
     set "%varname%=➖"
 )
