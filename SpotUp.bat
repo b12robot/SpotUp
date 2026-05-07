@@ -14,26 +14,41 @@ chcp 65001 >nul 2>&1
 :: ╔═══════════════╗
 :: ║ SpotUp Config ║
 :: ╚═══════════════╝
-:: Hazır bir önayar seçin veya custom seçerek aşağıdan özelleştirin.
-::   install -> Spotify, SpotX ve Spicetify’ı kurar.
-:: uninstall -> Spotify, SpotX ve Spicetify'i kaldırır.
-:: reinstall -> Spotify, SpotX ve Spicetify'i kaldırıp yeniden kurar.
-::    update -> Spicetify'i günceller.
-::    custom -> Aşağıda belirlediğiniz seçeneklere göre işlem yapar.
-set preset=custom
+:: Hazır bir önayar seçin veya "custom" seçerek aşağıdan özelleştirin.
 
+:: [Syntax] {action}_{target}
+:: action: install, uninstall, reinstall, update
+:: target: spotify, spotx, spicetify, all
+
+:: [Single]
+:: | install_spotify   | uninstall_spotify   | reinstall_spotify   |
+:: | install_spotx     | uninstall_spotx     | reinstall_spotx     |
+:: | install_spicetify | uninstall_spicetify | reinstall_spicetify | update_spicetify |
+
+:: [Combined]
+:: | install_spotify_spotx     | uninstall_spotify_spotx     | reinstall_spotify_spotx     |
+:: | install_spotify_spicetify | uninstall_spotify_spicetify | reinstall_spotify_spicetify |
+:: | install_all               | uninstall_all               | reinstall_all               |
+
+:: [Special]
+:: | custom | --> Aşağıda belirlediğiniz seçeneklere göre işlem yapar.
+set preset=reinstall_spotify_spotx
+
+:: ╔═══════════════╗
+:: ║ Manuel Config ║
+:: ╚═══════════════╝
 :: Spotify: Dijital müzik ve podcast akış platformu.
 :: Spotify'ı kaldırır. (true/false)
 :: (Spotify'ı kaldırmak SpotX'i de kaldıracaktır.)
-set spotify_uninstall=true
+set spotify_uninstall=false
 :: Spotify'ı kurar. (true/false)
-set spotify_install=true
+set spotify_install=false
 
 :: SpotX: Spotify için reklam engelleme ve güncelleme kontrol aracı.
 :: SpotX'i kaldırır. (true/false)
-set spotx_uninstall=true
+set spotx_uninstall=false
 :: SpotX'i kurar. (true/false)
-set spotx_install=true
+set spotx_install=false
 
 :: Spicetify: Spotify arayüzünü ve işlevlerini özelleştirme aracı.
 :: Spicetify'ı kaldırır. (true/false)
@@ -42,6 +57,18 @@ set spicetify_uninstall=false
 set spicetify_install=false
 :: Spicetify'ı günceller. (true/false)
 set spicetify_update=false
+
+:: ╔══════════════════╗
+:: ║ Advanced Options ║
+:: ╚══════════════════╝
+:: İşlemler öncesi Spotify ayarlarını ve kullanıcı verilerini yedekler, işlemler tamamlandığında geri yükler. (true/false)
+set backup=true
+
+:: Her işlem sonunda sonraki işleme geçmek için kullanıcı onayı bekler. (true/false)
+set pause=false
+
+:: İşlemler arasındaki bekleme süresi. (1-9 Saniye)
+set delay=1
 
 :: ╔══════════════╗
 :: ║ SpotX Config ║
@@ -66,44 +93,74 @@ set spotx_homepage_content=remove
 :: prompt -> Kurulum sırasında kullanıcıya sorar.
 set spotx_auto_updates=block
 
-:: ╔══════════════════╗
-:: ║ Advanced Options ║
-:: ╚══════════════════╝
-:: İşlemler öncesi Spotify ayarlarını ve kullanıcı verilerini yedekler, işlemler tamamlandığında geri yükler. (true/false)
-set backup=true
-
-:: Her işlem sonunda sonraki işleme geçmek için kullanıcı onayı bekler. (true/false)
-set pause=false
-
-:: İşlemler arasındaki bekleme süresi. (1-9 Saniye)
-set delay=1
-
 :: ╔═════════════════╗
 :: ║  End of Config  ║
 :: ╚═════════════════╝
 
+:: Set presets
 if "%preset%" NEQ "custom" (
 	set "spotify_uninstall=false" & set "spotify_install=false"
 	set "spotx_uninstall=false" & set "spotx_install=false"
 	set "spicetify_uninstall=false" & set "spicetify_install=false" & set "spicetify_update=false"
 	set "backup=false"
 )
-if "%preset%" EQU "install" (
+if "%preset%" EQU "install_spotify" (
+	set "spotify_install=true"
+) else if "%preset%" EQU "uninstall_spotify" (
+	set "spotify_uninstall=true"
+) else if "%preset%" EQU "reinstall_spotify" (
+	set "spotify_uninstall=true" & set "spotify_install=true"
+	set "backup=true"
+) else if "%preset%" EQU "install_spotx" (
+	set "spotx_install=true"
+) else if "%preset%" EQU "uninstall_spotx" (
+	set "spotx_uninstall=true"
+) else if "%preset%" EQU "reinstall_spotx" (
+	set "spotx_uninstall=true" & set "spotx_install=true"
+) else if "%preset%" EQU "install_spicetify" (
+	set "spicetify_install=true"
+) else if "%preset%" EQU "uninstall_spicetify" (
+	set "spicetify_uninstall=true"
+) else if "%preset%" EQU "reinstall_spicetify" (
+	set "spicetify_uninstall=true" & set "spicetify_install=true"
+) else if "%preset%" EQU "update_spicetify" (
+	set "spicetify_update=true"
+) else if "%preset%" EQU "install_spotify_spotx" (
+	set "spotify_install=true"
+	set "spotx_install=true"
+) else if "%preset%" EQU "uninstall_spotify_spotx" (
+	set "spotify_uninstall=true"
+	set "spotx_uninstall=true"
+) else if "%preset%" EQU "reinstall_spotify_spotx" (
+	set "spotify_uninstall=true" & set "spotify_install=true"
+	set "spotx_uninstall=true" & set "spotx_install=true"
+	set "backup=true"
+) else if "%preset%" EQU "install_spotify_spicetify" (
+	set "spotify_install=true"
+	set "spicetify_install=true"
+) else if "%preset%" EQU "uninstall_spotify_spicetify" (
+	set "spotify_uninstall=true"
+	set "spicetify_uninstall=true"
+) else if "%preset%" EQU "reinstall_spotify_spicetify" (
+	set "spotify_uninstall=true" & set "spotify_install=true"
+	set "spicetify_uninstall=true" & set "spicetify_install=true"
+	set "backup=true"
+) else if "%preset%" EQU "install_all" (
 	set "spotify_install=true"
 	set "spotx_install=true"
 	set "spicetify_install=true"
-) else if "%preset%" EQU "uninstall" (
+) else if "%preset%" EQU "uninstall_all" (
 	set "spotify_uninstall=true"
 	set "spotx_uninstall=true"
 	set "spicetify_uninstall=true"
-) else if "%preset%" EQU "reinstall" (
+) else if "%preset%" EQU "reinstall_all" (
 	set "spotify_uninstall=true" & set "spotify_install=true"
 	set "spotx_uninstall=true" & set "spotx_install=true"
 	set "spicetify_uninstall=true" & set "spicetify_install=true"
 	set "backup=true"
-) else if "%preset%" EQU "update" (
-	set "spicetify_update=true"
 )
+
+:: Fix conflicts
 if "%spicetify_install%" EQU "true" (
 	if "%spicetify_update%" EQU "true" (
 		if exist "%localappdata%\spicetify\spicetify.exe" (
@@ -114,6 +171,7 @@ if "%spicetify_install%" EQU "true" (
 	)
 )
 
+:: Check action
 set "change=false"
 if "%spotify_uninstall%" EQU "true" (set "change=true")
 if "%spotify_install%" EQU "true" (set "change=true")
@@ -123,10 +181,11 @@ if "%spicetify_uninstall%" EQU "true" (set "change=true")
 if "%spicetify_install%" EQU "true" (set "change=true")
 if "%spicetify_update%" EQU "true" (set "change=true")
 if "%change%" EQU "false" (
-	echo Herhangi bir işlem seçilmedi lütfen dosyaya sağ tıklayıp not defteri ile yapılandırmayı düzenleyin.
+	echo Herhangi bir işlem seçilmedi veya preset yanlış yazıldı, lütfen dosyaya sağ tıklayıp not defteri ile yapılandırmayı düzenleyin.
 	echo Çıkmak için herhangi bir tuşa basın... & endlocal & pause >nul 2>&1 & exit /b 0
 )
 
+:: Validate config
 set "config_error=false"
 for %%v in (spotify_uninstall spotify_install spotx_uninstall spotx_install spicetify_uninstall spicetify_install spicetify_update backup pause) do (
     if "!%%v!" NEQ "true" if "!%%v!" NEQ "false" (
@@ -155,14 +214,21 @@ if "%config_error%" EQU "true" (
     echo Çıkmak için herhangi bir tuşa basın... & endlocal & pause >nul 2>&1 & exit /b 0
 )
 
+:: Get shortcut status
 set "spotify_desktop_shortcut=false"
 if exist "%appdata%\Spotify\Spotify.exe" if exist "%userprofile%\Desktop\Spotify.lnk" (
     set "spotify_desktop_shortcut=true"
 )
+
+:: Call actions
 call :main
+
+:: Remove shortcut if necessary
 if "%spotify_desktop_shortcut%" NEQ "true" (
 	del /q "%userprofile%\Desktop\Spotify.lnk" >nul 2>&1
 )
+
+:: Set symbols
 for %%v in (
     spotify_uninstall_status
     spotify_install_status
@@ -176,8 +242,10 @@ for %%v in (
 	backup_status
 	restore_status
 ) do (
-    call :set_symbol %%v !%%v!
+    call :symbol %%v !%%v!
 )
+
+:: Display table
 cls
 echo ╔═══════════╦══════════╦══════════╦══════════╗
 echo ║ [94mProg/Drum[0m ║  [94mKaldır[0m  ║  [94mYükle[0m   ║ [94mGüncelle[0m ║   ╔════════════════════════════════════════╗
@@ -556,7 +624,7 @@ if "%pause%" EQU "true" (
 )
 exit /b 0
 
-:set_symbol
+:symbol
 set "varname=%~1"
 set "value=%~2"
 if "%value%" EQU "true" (
