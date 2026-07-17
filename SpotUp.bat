@@ -392,20 +392,21 @@ if exist "%appdata%\Spotify\Spotify.bak" (set "spotx_installed=true")
 icacls "%localappdata%\Spotify\Update" /reset /t >nul 2>&1
 start /w "uninstall_spotify" "%appdata%\Spotify\uninstall.exe" /silent >nul 2>&1
 timeout /t 2 /nobreak >nul 2>&1
-set "wait_retry=1"
-set "wait_max=5"
-:retry_wait
+set "uninstall_retry=1"
+set "uninstall_max=5"
+:retry_uninstall
 tasklist | findstr /i "SpotifyUninstall.exe" >nul 2>&1
 if !errorlevel! EQU 0 (
-	timeout /t 2 /nobreak >nul 2>&1
-	if !wait_retry! GEQ !wait_max! (
+	set /a "uninstall_wait=uninstall_retry*2"
+	timeout /t !uninstall_wait! /nobreak >nul 2>&1
+	if !uninstall_retry! GEQ !uninstall_max! (
 		set "spotify_uninstall_status=error"
 		echo [31mSpotify'ın kaldırılması beklendiğinden uzun sürdü, Spotify'ı manuel olarak kaldırmayı deneyin.[0m
 		call :wait
 		exit /b 1
 	)
-	set /a "wait_retry+=1"
-	goto :retry_wait
+	set /a "uninstall_retry+=1"
+	goto :retry_uninstall
 )
 rd /s /q "%appdata%\Spotify" >nul 2>&1
 rd /s /q "%localappdata%\Spotify" >nul 2>&1
@@ -585,14 +586,9 @@ call :wait
 exit /b 0
 
 :stop_spotify
-if not exist "%appdata%\Spotify\Spotify.exe" (
-	echo [33mSpotify bulunamadı, durdurulamaz.[0m
-	timeout /t %delay% /nobreak >nul 2>&1
-	exit /b 0
-)
 set "stop_retry=1"
-set "stop_max=3"
-:stop_process
+set "stop_max=5"
+:retry_stop
 tasklist | findstr /i "Spotify.exe" >nul 2>&1
 if !errorlevel! EQU 0 (
 	if !stop_retry! EQU 1 (
@@ -600,15 +596,16 @@ if !errorlevel! EQU 0 (
 	) else (
 		echo [33mSpotify durdurulamadı, tekrar deneniyor...[0m
 	)
+	set /a "stop_wait=stop_retry*2"
 	taskkill /im "Spotify.exe" /f /t >nul 2>&1
-	timeout /t 2 /nobreak >nul 2>&1
+	timeout /t !stop_wait! /nobreak >nul 2>&1
 	if !stop_retry! GEQ !stop_max! (
 		echo [31mSpotify !stop_retry! kez denemenin ardından durdurulamadı, Spotify'ı manuel olarak kapatmayı deneyin.[0m
 		call :wait
 		exit /b 1
 	)
 	set /a "stop_retry+=1"
-	goto :stop_process
+	goto :retry_stop
 )
 if !stop_retry! EQU 1 (
 	echo [36mSpotify zaten durdurulmuş.[0m
