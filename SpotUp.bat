@@ -353,7 +353,7 @@ if exist "%appdata%\Spotify\Spotify.exe" (
 call :run stop_spotify || exit /b 1
 echo Spotify indiriliyor...
 del /q "%temp%\SpotifySetup.exe" >nul 2>&1
-powershell -ExecutionPolicy RemoteSigned -Command "Invoke-WebRequest -Uri 'https://download.scdn.co/SpotifySetup.exe' -OutFile '%temp%\SpotifySetup.exe' -UseBasicParsing"
+powershell -ExecutionPolicy RemoteSigned -Command "Invoke-WebRequest -Uri 'https://download.scdn.co/SpotifySetup.exe' -OutFile '%temp%\SpotifySetup.exe' -UseBasicParsing" -ErrorAction Stop
 if not exist "%temp%\SpotifySetup.exe" (
 	set "spotify_install_status=error"
 	echo [31mSpotify indirilemedi.[0m
@@ -390,7 +390,6 @@ set "spotx_installed=false"
 if exist "%appdata%\Spotify\Spotify.bak" (set "spotx_installed=true")
 icacls "%localappdata%\Spotify\Update" /reset /t >nul 2>&1
 start /w "uninstall_spotify" "%appdata%\Spotify\uninstall.exe" /silent >nul 2>&1
-timeout /t 2 /nobreak >nul 2>&1
 set "uninstall_retry=1"
 set "uninstall_max=5"
 :retry_uninstall
@@ -461,7 +460,7 @@ if exist "%appdata%\Spotify\Spotify.bak" (
 )
 call :run stop_spotify || exit /b 1
 echo SpotX yükleniyor...
-powershell -ExecutionPolicy RemoteSigned -Command "Invoke-Expression ""& { $(Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/SpotX-Official/spotx-official.github.io/main/run.ps1' -UseBasicParsing) } !param!"""
+powershell -ExecutionPolicy RemoteSigned -Command "Invoke-Expression ""& { $(Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/SpotX-Official/spotx-official.github.io/main/run.ps1' -UseBasicParsing -ErrorAction Stop) } !param!"""
 if exist "%appdata%\Spotify\Spotify.bak" (
 	set "spotx_install_status=success"
 	echo [32mSpotX başarıyla yüklendi.[0m
@@ -484,13 +483,19 @@ if not exist "%appdata%\Spotify\Spotify.bak" (
 )
 call :run stop_spotify || exit /b 1
 echo SpotX kaldırılıyor...
-del /q "%appdata%\Spotify\dpapi.dll" >nul 2>&1
+del /q "%appdata%\Spotify\chrome_elf.dll" >nul 2>&1
+move "%appdata%\Spotify\chrome_elf.dll.bak" "%appdata%\Spotify\chrome_elf.dll" >nul 2>&1
+del /q "%appdata%\Spotify\Spotify.dll" >nul 2>&1
+move "%appdata%\Spotify\Spotify.dll.bak" "%appdata%\Spotify\Spotify.dll" >nul 2>&1
 del /q "%appdata%\Spotify\Spotify.exe" >nul 2>&1
 move "%appdata%\Spotify\Spotify.bak" "%appdata%\Spotify\Spotify.exe" >nul 2>&1
-del /q "%appdata%\Spotify\config.ini" >nul 2>&1
 del /q "%appdata%\Spotify\apps\xpui.spa" >nul 2>&1
 move "%appdata%\Spotify\apps\xpui.bak" "%appdata%\Spotify\apps\xpui.spa" >nul 2>&1
-del /q "%appdata%\Spotify\blockthespot_log.txt" >nul 2>&1
+if exist "%temp%\spotx_temp*" (
+    for /d %%i in ("%temp%\spotx_temp*") do (
+        rd /s /q "%%i" >nul 2>&1
+    )
+)
 if not exist "%appdata%\Spotify\Spotify.bak" (
 	set "spotx_uninstall_status=success"
 	echo [32mSpotX başarıyla kaldırıldı.[0m
@@ -518,7 +523,7 @@ if exist "%localappdata%\spicetify\spicetify.exe" (
 )
 call :run stop_spotify || exit /b 1
 echo Spicetify yükleniyor...
-powershell -ExecutionPolicy RemoteSigned -Command "Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/spicetify/cli/main/install.ps1' -UseBasicParsing | Invoke-Expression"
+powershell -ExecutionPolicy RemoteSigned -Command "Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/spicetify/cli/main/install.ps1' -UseBasicParsing -ErrorAction Stop | Invoke-Expression"
 if exist "%localappdata%\spicetify\spicetify.exe" (
 	set "spicetify_install_status=success"
 	echo [32mSpicetify başarıyla yüklendi.[0m
@@ -569,10 +574,10 @@ if not exist "%localappdata%\spicetify\spicetify.exe" (
 )
 call :run stop_spotify || exit /b 1
 echo Spicetify güncelleniyor...
-for /f %%a in ('""%localappdata%\spicetify\spicetify.exe"" --version') do (set "old_spi_ver=%%a")
+for /f %%a in ('"%localappdata%\spicetify\spicetify.exe" --version') do (set "old_spi_ver=%%a")
 powershell -ExecutionPolicy RemoteSigned -Command "spicetify upgrade"
 timeout /t 2 /nobreak >nul 2>&1
-for /f %%a in ('""%localappdata%\spicetify\spicetify.exe"" --version') do (set "new_spi_ver=%%a")
+for /f %%a in ('"%localappdata%\spicetify\spicetify.exe" --version') do (set "new_spi_ver=%%a")
 if "!old_spi_ver!" NEQ "!new_spi_ver!" (
 	set "spicetify_update_status=success"
 	echo [32mSpicetify başarıyla güncellendi:[0m '!old_spi_ver!' [90m-^>[0m '!new_spi_ver!'
