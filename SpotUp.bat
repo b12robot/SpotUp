@@ -174,22 +174,28 @@ if "%spicetify_install%" EQU "true" (
 )
 
 :: Check action
-set "change=false"
-if "%spotify_uninstall%" EQU "true" (set "change=true")
-if "%spotify_install%" EQU "true" (set "change=true")
-if "%spotx_uninstall%" EQU "true" (set "change=true")
-if "%spotx_install%" EQU "true" (set "change=true")
-if "%spicetify_uninstall%" EQU "true" (set "change=true")
-if "%spicetify_install%" EQU "true" (set "change=true")
-if "%spicetify_update%" EQU "true" (set "change=true")
-if "%change%" EQU "false" (
-	echo Herhangi bir işlem seçilmedi veya preset yanlış yazıldı, lütfen dosyaya sağ tıklayıp not defteri ile yapılandırmayı düzenleyin.
+set "action=false"
+if "%spotify_uninstall%" EQU "true" (set "action=true")
+if "%spotify_install%" EQU "true" (set "action=true")
+if "%spotx_uninstall%" EQU "true" (set "action=true")
+if "%spotx_install%" EQU "true" (set "action=true")
+if "%spicetify_uninstall%" EQU "true" (set "action=true")
+if "%spicetify_install%" EQU "true" (set "action=true")
+if "%spicetify_update%" EQU "true" (set "action=true")
+if "%action%" EQU "false" (
+	echo [36mHerhangi bir işlem seçilmedi veya preset yanlış yazıldı.
+	echo Lütfen dosyaya sağ tıklayıp not defteri ile yapılandırmayı düzenleyin.[0m
 	echo Çıkmak için herhangi bir tuşa basın... & endlocal & pause >nul 2>&1 & exit /b 0
 )
 
 :: Validate config
 set "config_error=false"
-for %%v in (spotify_uninstall spotify_install spotx_uninstall spotx_install spicetify_uninstall spicetify_install spicetify_update backup pause) do (
+for %%v in (
+	spotify_install spotify_uninstall
+	spotx_install spotx_uninstall
+	spicetify_install spicetify_uninstall spicetify_update
+	backup pause
+) do (
     if "!%%v!" NEQ "true" if "!%%v!" NEQ "false" (
         echo [41;97m Error [0m '%%v' değişkeni için geçersiz değer: '!%%v!', true/false olmalı.
         set "config_error=true"
@@ -212,7 +218,7 @@ echo %delay%| findstr /r "^[1-9]$" >nul 2>&1 || (
 	set "config_error=true"
 )
 if "%config_error%" EQU "true" (
-    echo Lütfen yapılandırmayı düzeltip tekrar çalıştırın.
+    echo [36mLütfen yapılandırmayı düzeltip tekrar çalıştırın.[0m
     echo Çıkmak için herhangi bir tuşa basın... & endlocal & pause >nul 2>&1 & exit /b 0
 )
 
@@ -224,6 +230,11 @@ if exist "%appdata%\Spotify\Spotify.exe" if exist "%userprofile%\Desktop\Spotify
 
 :: Call actions
 call :main
+if defined fatal_step (
+	if "%backup%" EQU "true" (
+		call :restore_spotify
+	)
+)
 
 :: Remove shortcut if necessary
 if "%spotify_desktop_shortcut%" NEQ "true" (
@@ -282,12 +293,6 @@ exit /b !errorlevel!
 
 :backup_spotify
 cls & echo ╔════════════════╗ & echo ║ Spotify Backup ║ & echo ╚════════════════╝
-if not exist "%appdata%\Spotify\Spotify.exe" (
-	set "backup_status=error"
-	echo [31mSpotify yüklü değil, yedekleme yapılamaz.[0m
-	call :wait
-	exit /b 0
-)
 if not exist "%appdata%\Spotify\prefs." (
 	set "backup_status=warn"
 	echo [33mYedeklenecek Spotify dosyası bulunamadı.[0m
@@ -312,15 +317,9 @@ exit /b 1
 
 :restore_spotify
 cls & echo ╔═════════════════╗ & echo ║ Spotify Restore ║ & echo ╚═════════════════╝
-if not exist "%appdata%\Spotify\Spotify.exe" (
-	set "restore_status=error"
-	echo [31mSpotify yüklü değil, yedek geri yüklenemez.[0m
-	call :wait
-	exit /b 0
-)
 if not exist "%temp%\SpotifyBackup\prefs." (
 	set "restore_status=warn"
-	echo [33mSpotify yedeği bulunamadı, geri yüklenemez[0m
+	echo [33mSpotify yedeği bulunamadı, geri yüklenemiyor.[0m
 	call :wait
 	exit /b 0
 )
@@ -381,7 +380,7 @@ exit /b 0
 cls & echo ╔═══════════════════╗ & echo ║ Spotify Uninstall ║ & echo ╚═══════════════════╝
 if not exist "%appdata%\Spotify\Spotify.exe" (
 	set "spotify_uninstall_status=skip"
-	echo [36mSpotify yüklü değil, kaldırılamaz.[0m
+	echo [36mSpotify yüklü değil, kaldırılamıyor.[0m
 	call :wait
 	exit /b 0
 )
@@ -447,10 +446,10 @@ if "%spotx_auto_updates%" EQU "block" (
 ) else (
 	set "spotx_auto_updates="
 )
-set "param=!spotx_update_mode!!spotx_homepage_content!!spotx_auto_updates! -confirm_uninstall_ms_spoti -start_spoti"
+set "param=!spotx_update_mode!!spotx_homepage_content!!spotx_auto_updates! -confirm_uninstall_ms_spoti -defender_exclusions_off -DisableStartup -start_spoti"
 if not exist "%appdata%\Spotify\Spotify.exe" (
 	set "spotx_install_status=error"
-	echo [31mSpotify yüklü değil, SpotX yüklenemez.[0m
+	echo [31mSpotify yüklü değil, SpotX yüklenemiyor.[0m
 	call :wait
 	exit /b 0
 )
@@ -479,7 +478,7 @@ if "!spotx_uninstall_status!" EQU "success" (exit /b 0)
 cls & echo ╔═════════════════╗ & echo ║ SpotX Uninstall ║ & echo ╚═════════════════╝
 if not exist "%appdata%\Spotify\Spotify.bak" (
 	set "spotx_uninstall_status=skip"
-	echo [36mSpotX yüklü değil, kaldırılamaz.[0m
+	echo [36mSpotX yüklü değil, kaldırılamıyor.[0m
 	call :wait
 	exit /b 0
 )
@@ -507,7 +506,7 @@ exit /b 0
 cls & echo ╔═══════════════════╗ & echo ║ Spicetify Install ║ & echo ╚═══════════════════╝
 if not exist "%appdata%\Spotify\Spotify.exe" (
 	set "spicetify_install_status=error"
-	echo [31mSpotify yüklü değil, Spicetify yüklenemez.[0m
+	echo [31mSpotify yüklü değil, Spicetify yüklenemiyor.[0m
 	call :wait
 	exit /b 0
 )
@@ -535,7 +534,7 @@ exit /b 0
 cls & echo ╔═════════════════════╗ & echo ║ Spicetify Uninstall ║ & echo ╚═════════════════════╝
 if not exist "%localappdata%\spicetify\spicetify.exe" (
 	set "spicetify_uninstall_status=skip"
-	echo [36mSpicetify yüklü değil, kaldırılamaz.[0m
+	echo [36mSpicetify yüklü değil, kaldırılamıyor.[0m
 	call :wait
 	exit /b 0
 )
@@ -570,10 +569,10 @@ if not exist "%localappdata%\spicetify\spicetify.exe" (
 )
 call :run stop_spotify || exit /b 1
 echo Spicetify güncelleniyor...
-for /f %%a in ('%localappdata%\spicetify\spicetify.exe --version') do (set "old_spi_ver=%%a")
+for /f %%a in ('""%localappdata%\spicetify\spicetify.exe"" --version') do (set "old_spi_ver=%%a")
 powershell -ExecutionPolicy RemoteSigned -Command "spicetify upgrade"
 timeout /t 2 /nobreak >nul 2>&1
-for /f %%a in ('%localappdata%\spicetify\spicetify.exe --version') do (set "new_spi_ver=%%a")
+for /f %%a in ('""%localappdata%\spicetify\spicetify.exe"" --version') do (set "new_spi_ver=%%a")
 if "!old_spi_ver!" NEQ "!new_spi_ver!" (
 	set "spicetify_update_status=success"
 	echo [32mSpicetify başarıyla güncellendi:[0m '!old_spi_ver!' [90m-^>[0m '!new_spi_ver!'
